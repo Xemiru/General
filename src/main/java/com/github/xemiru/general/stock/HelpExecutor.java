@@ -74,16 +74,5 @@ public class HelpExecutor implements CommandExecutor {
         } else {
             throw new CommandException("Couldn't find command.");
         }
-
-        /*
-        // no command matched, default to showing everything
-        StringBuilder sb = new StringBuilder();
-        for (Command cmd : this.commands)
-            sb.append(cmd.getName())
-                .append(" -- ")
-                .append(cmd.getShortDescription().orElse("This command has no short help text."))
-                .append('\n');
-
-        context.sendMessage(sb.toString().trim());*/
     }
 }
