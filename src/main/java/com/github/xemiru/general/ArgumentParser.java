@@ -72,8 +72,6 @@ public interface ArgumentParser<T> {
      *
      * <p>This can return null or an empty list to signify no suggestions.</p>
      *
-     * <p>If an exception occurs from this method, the result should be the same as this method returning null.</p>
-     *
      * @return a list of suggestions for tab completion
      */
     List<String> getSuggestions();

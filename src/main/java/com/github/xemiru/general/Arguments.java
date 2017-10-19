@@ -112,7 +112,15 @@ public class Arguments {
         String[] raw = this.rawArgs.getRaw();
         String last = raw[raw.length - 1];
 
-        List<String> suggested = this.syntax.get(raw.length - 1).getSuggestions();
+        List<String> suggested;
+        ArgumentParser<?> parser = this.syntax.get(raw.length - 1);
+        try {
+            suggested = parser.getSuggestions();
+        } catch (Throwable e) {
+            throw new ParseException(String.format("Parser %s with typename %s crashed while generating suggestions",
+                parser.getClass().getName(), parser.getTypename()));
+        }
+
         if (suggested == null) return new ArrayList<>(); // return empty
 
         Set<String> selection = new LinkedHashSet<>(suggested);
