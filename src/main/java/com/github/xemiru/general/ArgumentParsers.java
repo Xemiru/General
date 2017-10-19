@@ -98,6 +98,8 @@ public class ArgumentParsers {
 
     /**
      * Parses simple numerical input.
+     *
+     * <p>The returned value is a double, but is returned as a Number for convenience.</p>
      */
     public static final ArgumentParser<Number> NUMBER = new ArgumentParser<Number>() {
 
