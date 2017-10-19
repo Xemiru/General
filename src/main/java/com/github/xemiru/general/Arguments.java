@@ -238,8 +238,62 @@ public class Arguments {
     /**
      * Writes a parameter to this set of arguments using the provided {@link ArgumentParser}.
      *
+     * <p>The typename of the provided parser is renamed.</p>
+     *
+     * @param typename the typename to identify with
+     * @param parser the parser to use
+     * @param <T> the type of the resulting parameter
+     * @return this Arguments
+     */
+    public <T> Arguments named(String typename, ArgumentParser<T> parser) {
+        return this.named(typename, parser, null);
+    }
+
+    /**
+     * Writes a parameter to this set of arguments using the provided {@link ArgumentParser} and checks it using the
+     * given {@link Predicate}.
+     *
+     * <p>The typename of the provided parser is renamed.</p>
+     *
+     * <p>The default error message for a parameter failing the Predicate's check is "invalid value." This can be
+     * changed using {@link #write(ArgumentParser, Predicate, String)}.</p>
+     *
+     * @param typename the typename to identify with
+     * @param parser the parser converting the raw argument into a usable parameter
+     * @param check the predicate checking whether the resulting parameter is usable
+     * @param <T> the type of the resulting parameter
+     * @return this Arguments
+     */
+    public <T> Arguments named(String typename, ArgumentParser<T> parser, Predicate<T> check) {
+        return this.named(typename, parser, check, null);
+    }
+
+    /**
+     * Writes a parameter to this set of arguments using the provided {@link ArgumentParser} and checks it using the
+     * given {@link Predicate}.
+     *
+     * <p>The typename of the provided parser is renamed.</p>
+     *
+     * <p>Note that the error message is always appended with the string that the passed ArgumentParser deemed invalid.
+     * Specifically, the message becomes "message: string".</p>
+     *
+     * @param typename the typename to identify with
+     * @param parser the parser converting the raw argument into a usable parameter
+     * @param check the predicate checking whether the resulting parameter is usable
+     * @param errorMsg the error message sent when the predicate fails to verify the resulting parameter
+     * @param <T> the type of the resulting parameter
+     * @return this Arguments
+     */
+    public <T> Arguments named(String typename, ArgumentParser<T> parser, Predicate<T> check, String errorMsg) {
+        return this.write(ArgumentParsers.rename(parser, typename), check, errorMsg);
+    }
+
+    /**
+     * Writes a parameter to this set of arguments using the provided {@link ArgumentParser}.
+     *
      * @param parser the parser converting the raw argument into a usable parameter
      * @param <T> the type of the resulting parameter
+     * @return this Arguments
      */
     public <T> Arguments write(ArgumentParser<T> parser) {
         return this.write(parser, null);
@@ -255,6 +309,7 @@ public class Arguments {
      * @param parser the parser converting the raw argument into a usable parameter
      * @param check the predicate checking whether the resulting parameter is usable
      * @param <T> the type of the resulting parameter
+     * @return this Arguments
      */
     public <T> Arguments write(ArgumentParser<T> parser, Predicate<T> check) {
         return this.write(parser, check, null);
@@ -273,6 +328,7 @@ public class Arguments {
      * @param check the predicate checking whether the resulting parameter is usable
      * @param errorMsg the error message sent when the predicate fails to verify the resulting parameter
      * @param <T> the type of the resulting parameter
+     * @return this Arguments
      */
     public <T> Arguments write(ArgumentParser<T> parser, Predicate<T> check, String errorMsg) {
         this.syntax.add(parser);
