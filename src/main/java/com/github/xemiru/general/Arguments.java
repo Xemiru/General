@@ -352,7 +352,10 @@ public class Arguments {
             try {
                 T value = parser.parse(args);
                 String parsed = args.getParsed(start);
-                if (check != null && !check.test(value)) {
+                if (value == null) {
+                    this.error = new Error(new ParseException(String.format("Parser %s with typename %s produced null value",
+                        parser.getClass().getName(), parser.getTypename())));
+                } else if (check != null && !check.test(value)) {
                     this.error = new Error(errorMsg == null ?
                         "invalid value: " + parsed :
                         errorMsg + ": " + parsed);
