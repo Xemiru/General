@@ -69,4 +69,4 @@ Syntax: add <number> <number>
 Too big!
 ```
 
-General is also ready for tab completion, but you should see the wiki for that.
+[General is also ready for command completion.](https://github.com/Xemiru/General/wiki/Argument-Parsers#parameter-completion)
