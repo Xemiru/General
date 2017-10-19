@@ -3,10 +3,7 @@ package com.github.xemiru.general.stock;
 import com.github.xemiru.general.*;
 import com.github.xemiru.general.exception.CommandException;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import static com.github.xemiru.general.ArgumentParsers.STRING;
 
@@ -19,7 +16,7 @@ import static com.github.xemiru.general.ArgumentParsers.STRING;
  */
 public class ParentExecutor implements CommandExecutor {
 
-    public static class CommandMatcher implements ArgumentParser<CommandContext> {
+    public static class CommandMatcher implements ArgumentParser<Optional<CommandContext>> {
 
         private CommandContext parent;
         private List<Command> commands;
@@ -35,14 +32,14 @@ public class ParentExecutor implements CommandExecutor {
         }
 
         @Override
-        public CommandContext parse(RawArguments args) {
+        public Optional<CommandContext> parse(RawArguments args) {
             String name = STRING.parse(args);
             for (Command cmd : this.commands) {
                 if (cmd.hasName(name))
-                    return new CommandContext(this.parent.getManager(), cmd, name, this.parent.isDry());
+                    return Optional.of(new CommandContext(this.parent.getManager(), cmd, name, this.parent.isDry()));
             }
 
-            return new CommandContext(null, null, name, this.parent.isDry());
+            return Optional.empty();
         }
 
         @Override
@@ -89,16 +86,17 @@ public class ParentExecutor implements CommandExecutor {
             // make a new context that lies about being dry-ran so we can get the context
             Arguments lie = args.copy().setContext(new CommandContext(context.getManager(), null, null, false));
 
-            CommandContext ctx = lie.next();
-            if (ctx.getCommand() != null) ctx.getCommand().getExec().execute(ctx, args.drop(1).setContext(ctx), true);
+            Optional<CommandContext> ctx = lie.next();
+            ctx.ifPresent(commandContext -> commandContext.getCommand().getExec()
+                .execute(commandContext, args.drop(1).setContext(commandContext), true));
         } else {
-            CommandContext ctx = args.next();
-            if (ctx.getCommand() == null) {
+            Optional<CommandContext> ctx = args.next();
+            if (!ctx.isPresent()) {
                 String suggest = context.getLabel() == null ? "help" : context.getLabel() + " help";
                 throw new CommandException(String.format("Unknown command. Try \"%s\".", suggest));
             }
 
-            ctx.getCommand().getExec().execute(ctx, args.drop(1).setContext(ctx), false);
+            ctx.get().getCommand().getExec().execute(ctx.get(), args.drop(1).setContext(ctx.get()), false);
         }
     }
 

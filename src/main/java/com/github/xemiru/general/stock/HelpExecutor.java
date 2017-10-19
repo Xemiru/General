@@ -4,8 +4,7 @@ import com.github.xemiru.general.*;
 import com.github.xemiru.general.exception.CommandException;
 
 import java.util.List;
-
-import static com.github.xemiru.general.ArgumentParsers.fallback;
+import java.util.Optional;
 
 public class HelpExecutor implements CommandExecutor {
 
@@ -52,15 +51,15 @@ public class HelpExecutor implements CommandExecutor {
         args.write(new ParentExecutor.CommandMatcher(context, this.commands));
         if (dry) return;
 
-        CommandContext ctx = args.next();
-        if (ctx.getCommand() != null) {
+        Optional<CommandContext> ctx = args.next();
+        if (ctx.isPresent()) {
             try {
                 String syntax;
-                Command cmd = ctx.getCommand();
+                Command cmd = ctx.get().getCommand();
                 if (cmd.getSyntax().isPresent()) syntax = cmd.getSyntax().get();
                 else {
-                    Arguments simArgs = new Arguments(ctx, new RawArguments(new String[0]));
-                    cmd.getExec().execute(ctx, simArgs, true);
+                    Arguments simArgs = new Arguments(ctx.get(), new RawArguments(new String[0]));
+                    cmd.getExec().execute(ctx.get(), simArgs, true);
                     syntax = simArgs.getSyntax();
                 }
 
