@@ -184,8 +184,8 @@ public class ArgumentParsers {
             }
 
             @Override
-            public List<String> getSuggestions() {
-                return new ArrayList<>(this.selection);
+            public Set<String> getSuggestions() {
+                return new LinkedHashSet<>(this.selection);
             }
         };
     }
@@ -244,8 +244,8 @@ public class ArgumentParsers {
             }
 
             @Override
-            public List<String> getSuggestions() {
-                List<String> completion = new ArrayList<>();
+            public Set<String> getSuggestions() {
+                Set<String> completion = new LinkedHashSet<>();
                 for (ArgumentParser<?> parser : this.parsers) completion.addAll(parser.getSuggestions());
                 return completion;
             }
@@ -276,7 +276,7 @@ public class ArgumentParsers {
             }
 
             @Override
-            public List<String> getSuggestions() {
+            public Set<String> getSuggestions() {
                 return parser.getSuggestions();
             }
         };
@@ -309,7 +309,7 @@ public class ArgumentParsers {
             }
 
             @Override
-            public List<String> getSuggestions() {
+            public Set<String> getSuggestions() {
                 return parser.getSuggestions();
             }
         };
@@ -342,7 +342,7 @@ public class ArgumentParsers {
             }
 
             @Override
-            public List<String> getSuggestions() {
+            public Set<String> getSuggestions() {
                 return parser.getSuggestions();
             }
         };
@@ -383,7 +383,7 @@ public class ArgumentParsers {
             }
 
             @Override
-            public List<String> getSuggestions() {
+            public Set<String> getSuggestions() {
                 return parser.getSuggestions();
             }
         };
@@ -424,7 +424,7 @@ public class ArgumentParsers {
             }
 
             @Override
-            public List<String> getSuggestions() {
+            public Set<String> getSuggestions() {
                 return parser.getSuggestions();
             }
         };
@@ -462,7 +462,7 @@ public class ArgumentParsers {
             }
 
             @Override
-            public List<String> getSuggestions() {
+            public Set<String> getSuggestions() {
                 return parser.getSuggestions();
             }
         };

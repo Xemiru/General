@@ -4,6 +4,7 @@ import com.github.xemiru.general.exception.ParseException;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Parses raw tokens into usable parameters.
@@ -74,6 +75,6 @@ public interface ArgumentParser<T> {
      *
      * @return a list of suggestions for tab completion
      */
-    default List<String> getSuggestions() { return null; }
+    default Set<String> getSuggestions() { return null; }
 
 }

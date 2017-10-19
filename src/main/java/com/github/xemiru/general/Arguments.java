@@ -112,7 +112,7 @@ public class Arguments {
         String[] raw = this.rawArgs.getRaw();
         String last = raw[raw.length - 1];
 
-        List<String> suggested;
+        Set<String> suggested;
         ArgumentParser<?> parser = this.syntax.get(raw.length - 1);
         try {
             suggested = parser.getSuggestions();

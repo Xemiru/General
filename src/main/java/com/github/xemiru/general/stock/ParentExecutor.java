@@ -43,8 +43,8 @@ public class ParentExecutor implements CommandExecutor {
         }
 
         @Override
-        public List<String> getSuggestions() {
-            List<String> returned = new ArrayList<>();
+        public Set<String> getSuggestions() {
+            Set<String> returned = new LinkedHashSet<>();
             for (Command cmd : this.commands) returned.add(cmd.getName());
             return returned;
         }
