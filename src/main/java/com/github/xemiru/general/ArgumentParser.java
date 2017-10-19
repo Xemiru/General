@@ -74,6 +74,6 @@ public interface ArgumentParser<T> {
      *
      * @return a list of suggestions for tab completion
      */
-    List<String> getSuggestions();
+    default List<String> getSuggestions() { return null; }
 
 }

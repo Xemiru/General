@@ -63,11 +63,6 @@ public class ArgumentParsers {
             return args.next();
         }
 
-        @Override
-        public List<String> getSuggestions() {
-            return null;
-        }
-
     };
 
     /**
@@ -87,11 +82,6 @@ public class ArgumentParsers {
             while (args.peek().isPresent()) sb.append(' ').append(args.next());
 
             return sb.toString().trim();
-        }
-
-        @Override
-        public List<String> getSuggestions() {
-            return null;
         }
 
     };
@@ -119,11 +109,6 @@ public class ArgumentParsers {
             }
         }
 
-        @Override
-        public List<String> getSuggestions() {
-            return null;
-        }
-
     };
 
     /**
@@ -145,11 +130,6 @@ public class ArgumentParsers {
             } catch (NumberFormatException e) {
                 throw new ParseException("not an integer: " + parsed);
             }
-        }
-
-        @Override
-        public List<String> getSuggestions() {
-            return null;
         }
 
     };
