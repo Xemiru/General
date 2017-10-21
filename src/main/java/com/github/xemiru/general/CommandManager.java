@@ -24,7 +24,22 @@ public class CommandManager {
     }
 
     /**
+     * Returns the underlying set of {@link Command}s registered with this {@link CommandManager}.
+     *
+     * <p>The set returned is the same set as the one held by this CommandManager; changes to it are reflected in
+     * command execution. It is recommended to use the add/remove methods instead of directly modifying the returned
+     * set.</p>
+     *
+     * @return this CommandManager's commands
+     */
+    public Set<Command> getCommands() {
+        return this.commands;
+    }
+
+    /**
      * Adds {@link Command}s to choose from when command input is processed.
+     *
+     * <p>Duplicate command registration fails silently.</p>
      *
      * @param commands the Commands to add
      */
@@ -34,6 +49,8 @@ public class CommandManager {
 
     /**
      * Adds {@link Command}s to choose from when command input is processed.
+     *
+     * <p>Duplicate command registration fails silently.</p>
      *
      * @param commands the Commands to add
      */
