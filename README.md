@@ -29,7 +29,6 @@ public class MyExecutor implements FullCommandExecutor {
 
     @Override
     public void execute(CommandContext context, Arguments args) {
-        if(dry) return; // Dry means don't do anything, just declare what arguments you would've wanted.
         double a = args.next(); // Use them in the order you asked for!
         double b = args.next();
         double sum = a + b;
