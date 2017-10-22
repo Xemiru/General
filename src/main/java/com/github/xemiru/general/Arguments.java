@@ -110,6 +110,7 @@ public class Arguments {
      */
     public List<String> complete() {
         String[] raw = this.rawArgs.getRaw();
+        if(raw.length <= 0) return new ArrayList<>();
         String last = raw[raw.length - 1];
 
         Set<String> suggested;
