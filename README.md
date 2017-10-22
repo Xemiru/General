@@ -6,11 +6,45 @@ General'll let you worry only about your own command logic. Everything else, fro
 
 ## Quick-start
 
-#### Create a command ...
+#### Declare what a command does ...
 
 ```java
 import static com.github.xemiru.general.ArgumentParsers.*;
 
+import com.github.xemiru.general.Arguments;
+import com.github.xemiru.general.CommandContext;
+import com.github.xemiru.general.FullCommandExecutor;
+
+import com.github.xemiru.general.exception.CommandException;
+
+public class MyExecutor implements FullCommandExecutor {
+
+    @Override
+    public void initialize(CommandContext context, Arguments args) {
+        // Ask for arguments!
+        // Syntax will be generated for you.
+        args.write(NUMBER)
+            .write(NUMBER);
+    }
+
+    @Override
+    public void execute(CommandContext context, Arguments args) {
+        if(dry) return; // Dry means don't do anything, just declare what arguments you would've wanted.
+        double a = args.next(); // Use them in the order you asked for!
+        double b = args.next();
+        double sum = a + b;
+
+        if(sum > 10) throw new CommandException("Too big!");
+        context.sendMessage(String.format("%s + %s = %s", a, b, sum));
+    }
+
+}
+
+```
+
+#### Create the command ...
+
+```java
 import com.github.xemiru.general.Command;
 
 // ...
@@ -19,20 +53,7 @@ Command add = Command.builder()
     .name("add")
     .shortDescription("Addition!")
     .description("Adds two numbers you give to it .. but only up to 10.")
-    .executor((context, args, dry) -> {
-        // Ask for arguments!
-        // Syntax will be generated for you.
-        args.write(NUMBER)
-            .write(NUMBER);
-
-        if(dry) return; // Dry means don't do anything, just declare what arguments you would've wanted.
-        double a = args.next(); // Use them in the order you asked for!
-        double b = args.next();
-        double sum = a + b;
-
-        if(sum > 10) throw new CommandException("Too big!");
-        context.sendMessage(String.format("%s + %s = %s", a, b, sum));
-    }).build()
+    .executor(new MyExecutor()).build();
 ```
 
 #### Run it in a command manager!
