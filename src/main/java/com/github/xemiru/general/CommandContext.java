@@ -4,6 +4,7 @@ import com.github.xemiru.general.exception.CommandException;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Contains contextual information about the execution of a {@link Command}.
@@ -102,10 +103,29 @@ public class CommandContext {
     }
 
     /**
+     * Safely retrieves and returns a custom property set on this {@link CommandContext}.
+     *
+     * <p>An empty Optional is returned if the value did not exist, or if the value did but was of the wrong type.</p>
+     *
+     * @param key the key of the property
+     * @param <T> the type of the property
+     * @return the property value?
+     */
+    @SuppressWarnings("unchecked")
+    public <T> Optional<T> getCustomSafe(String key) {
+        try {
+            return Optional.ofNullable((T) this.custom.get(key));
+        } catch (ClassCastException ignored) {
+        }
+
+        return Optional.empty();
+    }
+
+    /**
      * Returns a custom property set on this {@link CommandContext}.
      *
-     * <p>This method has no safety and can throw a {@link NullPointerException} or a {@link ClassCastException} if the
-     * value did not exist or is casted into the wrong type by the type parameter.</p>
+     * <p>This method has no safety and can throw a {@link ClassCastException} if the is casted into the wrong type by
+     * the type parameter. Use {@link #getCustomSafe(String)} for null-safety and cast-safety.</p>
      *
      * @param key the key of the property
      * @param <T> the type of the property
@@ -137,8 +157,8 @@ public class CommandContext {
     public void execute(Arguments args) {
         args.setContext(this);
         String preExec = this.manager.getPreExecutor().apply(this).orElse(null);
-        if(preExec != null) {
-            if(!this.dry) throw new CommandException(preExec);
+        if (preExec != null) {
+            if (!this.dry) throw new CommandException(preExec);
         } else {
             this.command.getExec().execute(this, args, this.dry);
         }
