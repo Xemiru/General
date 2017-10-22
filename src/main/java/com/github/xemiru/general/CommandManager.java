@@ -6,21 +6,24 @@ import com.github.xemiru.general.stock.ParentExecutor;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * The main entrypoint for command systems.
  */
 public class CommandManager {
 
-    private Consumer<String> sendMessage;
-    private Consumer<String> sendError;
+    private Consumer<Object> sendMessage;
+    private Consumer<Object> sendError;
 
     private Set<Command> commands;
+    private Function<CommandContext, Optional<String>> preExec;
 
     public CommandManager() {
         this.sendMessage = System.out::println;
         this.sendError = System.err::println;
         this.commands = new HashSet<>();
+        this.setPreExecutor(null);
     }
 
     /**
@@ -79,41 +82,49 @@ public class CommandManager {
     /**
      * Handles the provided command string using this {@link CommandManager}'s internal command mapping.
      *
-     * @param input the input string to process
+     * @param input the input tokens to process
      */
     public void handleCommand(String input) {
-        this.handleCommand(input, this.commands);
+        this.handleCommand(input, null);
+    }
+
+    public void handleCommand(String input, Function<CommandContext, CommandContext> contextFactory) {
+        this.handleCommand(input, contextFactory, this.commands);
     }
 
     /**
      * Handles the provided command string using the provided collection of commands.
      *
-     * @param input the input string to process
+     * @param input the input tokens to process
      */
-    public void handleCommand(String input, Collection<Command> commands) {
-        this.processCommand(input, commands, false);
+    public void handleCommand(String input, Function<CommandContext, CommandContext> contextFactory, Collection<Command> commands) {
+        this.processCommand(input, contextFactory, commands, false);
     }
 
     /**
      * Returns completion suggestions for the last argument in the provided command string using commands from this
      * {@link CommandManager}'s internal command mapping.
      *
-     * @param input the input string to process
+     * @param input the input tokens to process
      * @return the list of possible completions for the last argument (can be empty)
      */
     public List<String> completeCommand(String input) {
-        return this.completeCommand(input, this.commands);
+        return this.completeCommand(input, null);
+    }
+
+    public List<String> completeCommand(String input, Function<CommandContext, CommandContext> contextFactory) {
+        return this.completeCommand(input, contextFactory, this.commands);
     }
 
     /**
      * Returns completion suggestions for the last argument in the provided command string using the provided collection
      * of commands.
      *
-     * @param input the input string to process
+     * @param input the input tokens to process
      * @return the list of possible completions for the last argument (can be empty)
      */
-    public List<String> completeCommand(String input, Collection<Command> commands) {
-        return this.processCommand(input, commands, true);
+    public List<String> completeCommand(String input, Function<CommandContext, CommandContext> contextFactory, Collection<Command> commands) {
+        return this.processCommand(input, contextFactory, commands, true);
     }
 
     /**
@@ -121,7 +132,7 @@ public class CommandManager {
      *
      * @param msg the message to send
      */
-    public void sendMessage(String msg) {
+    public void sendMessage(Object msg) {
         this.sendMessage.accept(msg);
     }
 
@@ -132,7 +143,7 @@ public class CommandManager {
      *
      * @param handler the new message handler
      */
-    public void setMessageHandler(Consumer<String> handler) {
+    public void setMessageHandler(Consumer<Object> handler) {
         this.sendMessage = handler == null ? System.out::println : handler;
     }
 
@@ -141,7 +152,7 @@ public class CommandManager {
      *
      * @param msg the error message to send
      */
-    public void sendError(String msg) {
+    public void sendError(Object msg) {
         this.sendError.accept(msg);
     }
 
@@ -152,13 +163,42 @@ public class CommandManager {
      *
      * @param handler the new error message handler
      */
-    public void setErrorMessageHandler(Consumer<String> handler) {
+    public void setErrorMessageHandler(Consumer<Object> handler) {
         this.sendError = handler == null ? System.err::println : handler;
     }
 
-    private List<String> processCommand(String input, Collection<Command> commands, boolean tab) {
+    /**
+     * Returns the pre-executor used for {@link Command}s ran with this {@link CommandManager}.
+     *
+     * <p>The pre-executor is called before calling the executor, allowing one to do checks on the context of the
+     * command before allowing it to be ran. Should the pre-executor return a non-empty Optional, it is assumed that the
+     * it does not want the command to be ran. A command running in dry mode will silently fail, but would otherwise
+     * throw a {@link CommandException} with the message produced by the pre-executor.</p>
+     *
+     * <p>The default pre-executor always returns an empty Optional. This method cannot return null.</p>
+     *
+     * @return this CommandManager's pre-executor
+     */
+    public Function<CommandContext, Optional<String>> getPreExecutor() {
+        return this.preExec;
+    }
+
+    /**
+     * Sets the pre-executor used for {@link Command}s ran with this {@link CommandManager}.
+     *
+     * <p>Passing null will set the default pre-executor (which always returns an empty Optional).</p>
+     *
+     * @param preExec the new pre-executor, or null to use default
+     */
+    public void setPreExecutor(Function<CommandContext, Optional<String>> preExec) {
+        this.preExec = preExec == null ? ctx -> Optional.empty() : preExec;
+    }
+
+    private List<String> processCommand(String input, Function<CommandContext, CommandContext> contextFactory, Collection<Command> commands, boolean tab) {
         CommandContext ctx = new CommandContext(this, null, null, tab);
-        String[] rargs = input.trim().split(" ");
+        if (contextFactory != null) ctx = contextFactory.apply(ctx);
+
+        String[] rargs = input.split(" ");
         if (tab && input.length() > 0 && input.charAt(input.length() - 1) == ' ') {
             // if ends with space, assume the user wants to tabcomplete the param after
             rargs = (input + "a").trim().split(" ");

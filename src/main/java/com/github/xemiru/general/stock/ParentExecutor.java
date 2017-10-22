@@ -41,8 +41,11 @@ public class ParentExecutor implements CommandExecutor {
         public Optional<CommandContext> parse(RawArguments args) {
             String name = STRING.parse(args);
             for (Command cmd : this.commands) {
-                if (cmd.hasName(name))
-                    return Optional.of(new CommandContext(this.parent.getManager(), cmd, name, this.parent.isDry()));
+                if (cmd.hasName(name)) {
+                    CommandContext rctx = new CommandContext(this.parent.getManager(), cmd, name, this.parent.isDry());
+                    parent.getCustomMap().forEach(rctx::setCustom);
+                    return Optional.of(rctx);
+                }
             }
 
             return Optional.empty();
@@ -104,10 +107,10 @@ public class ParentExecutor implements CommandExecutor {
 
         if (dry) {
             // be a little hacky; we need to call the command dry to harvest the syntax
-            // make a new context that lies about being dry-ran so we can get the context
+            // make a new context that lies about being dry-ran so we can get the syntax
             Arguments lie = args.copy().setContext(context.setDry(false));
-
             Optional<CommandContext> ctx = lie.next();
+
             if (ctx == DUMMY) return;
             ctx.ifPresent(ctxx -> ctxx.setDry(true).execute(args.drop(1)));
         } else {

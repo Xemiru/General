@@ -1,5 +1,10 @@
 package com.github.xemiru.general;
 
+import com.github.xemiru.general.exception.CommandException;
+
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Contains contextual information about the execution of a {@link Command}.
  */
@@ -9,12 +14,14 @@ public class CommandContext {
     private String label;
     private Command command;
     private CommandManager manager;
+    private Map<String, Object> custom;
 
     public CommandContext(CommandManager manager, Command command, String label, boolean dry) {
         this.dry = dry;
         this.label = label;
         this.command = command;
         this.manager = manager;
+        this.custom = new HashMap<>();
     }
 
     /**
@@ -83,6 +90,44 @@ public class CommandContext {
     }
 
     /**
+     * Returns the mapping of custom properties held by this {@link CommandContext}.
+     *
+     * <p>Changes to this map are reflected in the corresponding getter/setter methods. It is recommended to use the
+     * former instead of modifying the returned map directly.</p>
+     *
+     * @return this CommandContext's custom mapping
+     */
+    public Map<String, Object> getCustomMap() {
+        return this.custom;
+    }
+
+    /**
+     * Returns a custom property set on this {@link CommandContext}.
+     *
+     * <p>This method has no safety and can throw a {@link NullPointerException} or a {@link ClassCastException} if the
+     * value did not exist or is casted into the wrong type by the type parameter.</p>
+     *
+     * @param key the key of the property
+     * @param <T> the type of the property
+     * @return the property value
+     */
+    public <T> T getCustom(String key) {
+        return (T) this.custom.get(key);
+    }
+
+    /**
+     * Sets a custom property on this {@link CommandContext}.
+     *
+     * @param key the key of the property
+     * @param value the value of the property
+     * @return this CommandContext
+     */
+    public CommandContext setCustom(String key, Object value) {
+        this.custom.put(key, value);
+        return this;
+    }
+
+    /**
      * Executes the {@link Command} held by this {@link CommandContext} using the given {@link Arguments}.
      *
      * <p>The context of the provided arguments object is automagically set to this context.</p>
@@ -91,7 +136,12 @@ public class CommandContext {
      */
     public void execute(Arguments args) {
         args.setContext(this);
-        this.command.getExec().execute(this, args, this.dry);
+        String preExec = this.manager.getPreExecutor().apply(this).orElse(null);
+        if(preExec != null) {
+            if(!this.dry) throw new CommandException(preExec);
+        } else {
+            this.command.getExec().execute(this, args, this.dry);
+        }
     }
 
     /**
