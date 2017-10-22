@@ -211,7 +211,7 @@ public class CommandManager {
             new ParentExecutor().addCommands(commands).execute(ctx, args, ctx.isDry());
             if (tab) return args.complete();
         } catch (CommandException e) {
-            ctx.sendError(e.getMessage());
+            if(!ctx.isDry()) ctx.sendError(e.getMessage());
         } catch (SyntaxException e) {
             ctx.sendError(e.getMessage());
             ctx.sendError("Syntax: " + e.getSyntax());
