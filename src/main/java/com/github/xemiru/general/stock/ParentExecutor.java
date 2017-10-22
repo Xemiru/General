@@ -6,6 +6,7 @@ import com.github.xemiru.general.exception.CommandException;
 import java.util.*;
 
 import static com.github.xemiru.general.ArgumentParsers.STRING;
+import static com.github.xemiru.general.ArgumentParsers.alt;
 
 /**
  * An implementation of {@link CommandExecutor} that acts as a parent command to numerous subcommands.
@@ -15,6 +16,11 @@ import static com.github.xemiru.general.ArgumentParsers.STRING;
  * <p>If you need to build a command using this executor, it may be better to make use of {@link Command#parent()}.</p>
  */
 public class ParentExecutor implements CommandExecutor {
+
+    /**
+     * Dummy return value used to signify that the user didn't even try to input anything.
+     */
+    private static final Optional<CommandContext> DUMMY = Optional.of(new CommandContext(null, null, null, false));
 
     public static class CommandMatcher implements ArgumentParser<Optional<CommandContext>> {
 
@@ -51,8 +57,10 @@ public class ParentExecutor implements CommandExecutor {
     }
 
     private List<Command> commands;
+    private CommandExecutor fallback;
 
     public ParentExecutor() {
+        this.fallback = null;
         this.commands = new ArrayList<>();
         this.commands.add(HelpExecutor.create(this.commands));
     }
@@ -78,9 +86,21 @@ public class ParentExecutor implements CommandExecutor {
         return this;
     }
 
+    /**
+     * Sets the fallback {@link CommandExecutor} used when this {@link ParentExecutor} is called without attempting to
+     * specify a subcommand.
+     *
+     * @param exec the fallback executor, or null to remove
+     * @return this ParentExecutor
+     */
+    public ParentExecutor setFallback(CommandExecutor exec) {
+        this.fallback = exec;
+        return this;
+    }
+
     @Override
     public void execute(CommandContext context, Arguments args, boolean dry) {
-        args.write(new CommandMatcher(context, this.commands));
+        args.write(alt(new CommandMatcher(context, this.commands), DUMMY));
 
         if (dry) {
             // be a little hacky; we need to call the command dry to harvest the syntax
@@ -88,15 +108,17 @@ public class ParentExecutor implements CommandExecutor {
             Arguments lie = args.copy().setContext(context.setDry(false));
 
             Optional<CommandContext> ctx = lie.next();
+            if (ctx == DUMMY) return;
             ctx.ifPresent(ctxx -> ctxx.setDry(true).execute(args.drop(1)));
         } else {
             Optional<CommandContext> ctx = args.next();
-            if (!ctx.isPresent()) {
+            if (!ctx.isPresent() || (ctx == DUMMY && this.fallback == null)) {
                 String suggest = context.getLabel() == null ? "help" : context.getLabel() + " help";
                 throw new CommandException(String.format("Unknown command. Try \"%s\".", suggest));
             }
 
-            ctx.get().setDry(false).execute(args.drop(1));
+            if (ctx == DUMMY) fallback.execute(context, args, false);
+            else ctx.get().setDry(false).execute(args.drop(1));
         }
     }
 

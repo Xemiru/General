@@ -73,6 +73,17 @@ public class Command {
         }
 
         /**
+         * Required. The executor of the command.
+         *
+         * @param exec the executor of the command
+         * @return this Builder
+         */
+        public T executor(CommandExecutor exec) {
+            this.cmd.exec = exec;
+            return (T) this;
+        }
+
+        /**
          * Builds the command.
          *
          * @return the resulting Command
@@ -112,27 +123,9 @@ public class Command {
         public Command build() {
             if (this.subcmd.size() < 1)
                 throw new IllegalStateException("Parent command must have at least one subcommand");
-            this.cmd.exec = new ParentExecutor().addCommands(this.subcmd);
+            this.cmd.exec = new ParentExecutor().addCommands(this.subcmd).setFallback(this.cmd.exec);
             return super.build();
         }
-    }
-
-    public static class InstanceBuilder extends Builder<InstanceBuilder> {
-
-        private InstanceBuilder() {
-        }
-
-        /**
-         * Required. The executor of the command.
-         *
-         * @param exec the executor of the command
-         * @return this Builder
-         */
-        public InstanceBuilder executor(CommandExecutor exec) {
-            this.cmd.exec = exec;
-            return this;
-        }
-
     }
 
     // endregion
@@ -140,8 +133,8 @@ public class Command {
     /**
      * @return a {@link Command} builder
      */
-    public static InstanceBuilder builder() {
-        return new InstanceBuilder();
+    public static Builder builder() {
+        return new Builder();
     }
 
     /**
