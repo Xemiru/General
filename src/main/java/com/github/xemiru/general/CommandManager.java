@@ -13,8 +13,8 @@ import java.util.function.Function;
  */
 public class CommandManager {
 
-    private Consumer<Object> sendMessage;
-    private Consumer<Object> sendError;
+    private Consumer<String> sendMessage;
+    private Consumer<String> sendError;
 
     private Set<Command> commands;
     private Function<CommandContext, Optional<String>> preExec;
@@ -132,7 +132,7 @@ public class CommandManager {
      *
      * @param msg the message to send
      */
-    public void sendMessage(Object msg) {
+    public void sendMessage(String msg) {
         this.sendMessage.accept(msg);
     }
 
@@ -143,7 +143,7 @@ public class CommandManager {
      *
      * @param handler the new message handler
      */
-    public void setMessageHandler(Consumer<Object> handler) {
+    public void setMessageHandler(Consumer<String> handler) {
         this.sendMessage = handler == null ? System.out::println : handler;
     }
 
@@ -152,7 +152,7 @@ public class CommandManager {
      *
      * @param msg the error message to send
      */
-    public void sendError(Object msg) {
+    public void sendError(String msg) {
         this.sendError.accept(msg);
     }
 
@@ -163,7 +163,7 @@ public class CommandManager {
      *
      * @param handler the new error message handler
      */
-    public void setErrorMessageHandler(Consumer<Object> handler) {
+    public void setErrorMessageHandler(Consumer<String> handler) {
         this.sendError = handler == null ? System.err::println : handler;
     }
 
