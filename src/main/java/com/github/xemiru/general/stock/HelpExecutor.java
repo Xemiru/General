@@ -6,6 +6,8 @@ import com.github.xemiru.general.exception.CommandException;
 import java.util.List;
 import java.util.Optional;
 
+import static com.github.xemiru.general.ArgumentParsers.alt;
+
 public class HelpExecutor implements CommandExecutor {
 
     /**
@@ -48,7 +50,7 @@ public class HelpExecutor implements CommandExecutor {
 
     @Override
     public void execute(CommandContext context, Arguments args, boolean dry) {
-        args.write(new ParentExecutor.CommandMatcher(context, this.commands));
+        args.write(alt(new ParentExecutor.CommandMatcher(context, this.commands), Optional.empty()));
         if (dry) return;
 
         Optional<CommandContext> ctx = args.next();
@@ -72,7 +74,14 @@ public class HelpExecutor implements CommandExecutor {
                 throw new CommandException("That command crashed when we tried to ask it about itself. Oops.", e);
             }
         } else {
-            throw new CommandException("Couldn't find command.");
+            StringBuilder sb = new StringBuilder();
+            for (Command cmd : this.commands) {
+                sb.append(cmd.getName())
+                    .append(" -- ")
+                    .append(cmd.getShortDescription().orElse("This command has no short help text."));
+                context.sendMessage(sb.toString().trim());
+                sb.setLength(0);
+            }
         }
     }
 }
