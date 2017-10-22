@@ -59,7 +59,7 @@ public class HelpExecutor implements CommandExecutor {
                 if (cmd.getSyntax().isPresent()) syntax = cmd.getSyntax().get();
                 else {
                     Arguments simArgs = new Arguments(ctx.get(), new RawArguments(new String[0]));
-                    cmd.getExec().execute(ctx.get(), simArgs, true);
+                    ctx.get().setDry(true).execute(simArgs);
                     syntax = simArgs.getSyntax();
                 }
 

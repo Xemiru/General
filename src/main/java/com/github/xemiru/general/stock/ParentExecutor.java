@@ -81,14 +81,14 @@ public class ParentExecutor implements CommandExecutor {
     @Override
     public void execute(CommandContext context, Arguments args, boolean dry) {
         args.write(new CommandMatcher(context, this.commands));
+
         if (dry) {
             // be a little hacky; we need to call the command dry to harvest the syntax
             // make a new context that lies about being dry-ran so we can get the context
-            Arguments lie = args.copy().setContext(new CommandContext(context.getManager(), null, null, false));
+            Arguments lie = args.copy().setContext(context.setDry(false));
 
             Optional<CommandContext> ctx = lie.next();
-            ctx.ifPresent(commandContext -> commandContext.getCommand().getExec()
-                .execute(commandContext, args.drop(1).setContext(commandContext), true));
+            ctx.ifPresent(ctxx -> ctxx.setDry(true).execute(args.drop(1)));
         } else {
             Optional<CommandContext> ctx = args.next();
             if (!ctx.isPresent()) {
@@ -96,7 +96,7 @@ public class ParentExecutor implements CommandExecutor {
                 throw new CommandException(String.format("Unknown command. Try \"%s\".", suggest));
             }
 
-            ctx.get().getCommand().getExec().execute(ctx.get(), args.drop(1).setContext(ctx.get()), false);
+            ctx.get().setDry(false).execute(args.drop(1));
         }
     }
 
