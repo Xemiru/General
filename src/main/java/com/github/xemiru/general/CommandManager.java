@@ -5,7 +5,7 @@ import com.github.xemiru.general.exception.SyntaxException;
 import com.github.xemiru.general.stock.ParentExecutor;
 
 import java.util.*;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 /**
@@ -13,15 +13,15 @@ import java.util.function.Function;
  */
 public class CommandManager {
 
-    private Consumer<String> sendMessage;
-    private Consumer<String> sendError;
+    private BiConsumer<CommandContext, String> sendMessage;
+    private BiConsumer<CommandContext, String> sendError;
 
     private Set<Command> commands;
     private Function<CommandContext, Optional<String>> preExec;
 
     public CommandManager() {
-        this.sendMessage = System.out::println;
-        this.sendError = System.err::println;
+        this.setMessageHandler(null);
+        this.setErrorMessageHandler(null); // methods will set a default
         this.commands = new HashSet<>();
         this.setPreExecutor(null);
     }
@@ -164,10 +164,11 @@ public class CommandManager {
     /**
      * Sends a message using this {@link CommandManager}'s message sending handler.
      *
+     * @param context the context the message is coming from
      * @param msg the message to send
      */
-    public void sendMessage(String msg) {
-        this.sendMessage.accept(msg);
+    public void sendMessage(CommandContext context, String msg) {
+        this.sendMessage.accept(context, msg);
     }
 
     /**
@@ -177,17 +178,18 @@ public class CommandManager {
      *
      * @param handler the new message handler
      */
-    public void setMessageHandler(Consumer<String> handler) {
-        this.sendMessage = handler == null ? System.out::println : handler;
+    public void setMessageHandler(BiConsumer<CommandContext, String> handler) {
+        this.sendMessage = handler == null ? (ctx, msg) -> System.out.println(msg) : handler;
     }
 
     /**
      * Sends an error message using this {@link CommandManager}'s error message sending handler.
      *
-     * @param msg the error message to send
+     * @param context the context the message is coming from
+     * @param msg the message to send
      */
-    public void sendError(String msg) {
-        this.sendError.accept(msg);
+    public void sendError(CommandContext context, String msg) {
+        this.sendError.accept(context, msg);
     }
 
     /**
@@ -197,8 +199,8 @@ public class CommandManager {
      *
      * @param handler the new error message handler
      */
-    public void setErrorMessageHandler(Consumer<String> handler) {
-        this.sendError = handler == null ? System.err::println : handler;
+    public void setErrorMessageHandler(BiConsumer<CommandContext, String> handler) {
+        this.sendError = handler == null ? (ctx, msg) -> System.err.println(msg) : handler;
     }
 
     /**
