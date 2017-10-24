@@ -97,7 +97,7 @@ public class TestParsers {
             .name("test")
             .executor(exec).build());
 
-        mgr.handleCommand("test " + input, commands);
+        mgr.handleCommand("test " + input, null, commands);
         if (exec.getHeldError() != null) throw new RuntimeException(exec.getHeldError());
 
         T value = (T) exec.getHeld();
