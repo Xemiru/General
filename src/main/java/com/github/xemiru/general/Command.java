@@ -1,23 +1,30 @@
 package com.github.xemiru.general;
 
+import com.github.xemiru.general.misc.CustomAssignable;
+import com.github.xemiru.general.misc.CustomRetrievable;
 import com.github.xemiru.general.stock.ParentExecutor;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
-public class Command {
+public class Command implements CustomRetrievable {
 
     // region builder classes
 
     // ask me what this generic is for i fuckin dare you
     // (removing code duplication)
-    public static class Builder<T extends Builder> {
+    public static class Builder<T extends Builder> implements CustomAssignable {
 
         Command cmd;
+        private Map<String, Object> customs;
 
         private Builder() {
             this.cmd = new Command();
+            this.customs = new HashMap<>();
+        }
+
+        @Override
+        public Map<String, Object> getCustomMap() {
+            return this.customs;
         }
 
         /**
@@ -83,6 +90,12 @@ public class Command {
             return (T) this;
         }
 
+        @Override
+        public Builder setCustom(String key, Object value) {
+            CustomAssignable.super.setCustom(key, value);
+            return this;
+        }
+
         /**
          * Builds the command.
          *
@@ -91,6 +104,7 @@ public class Command {
         public Command build() {
             check(this.cmd.names, "Command must have a name");
             check(this.cmd.exec, "Command must have an executor");
+            this.cmd.customs = this.customs;
             return this.cmd;
         }
 
@@ -116,6 +130,12 @@ public class Command {
          */
         public ParentBuilder addCommand(Command cmd) {
             this.subcmd.add(cmd);
+            return this;
+        }
+
+        @Override
+        public ParentBuilder setCustom(String key, Object value) {
+            super.setCustom(key, value);
             return this;
         }
 
@@ -149,8 +169,14 @@ public class Command {
     private String shortDesc;
     private String description;
     private CommandExecutor exec;
+    private Map<String, Object> customs;
 
     private Command() {
+    }
+
+    @Override
+    public Map<String, Object> getCustomMap() {
+        return this.customs;
     }
 
     /**

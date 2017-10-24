@@ -1,15 +1,15 @@
 package com.github.xemiru.general;
 
 import com.github.xemiru.general.exception.CommandException;
+import com.github.xemiru.general.misc.CustomAssignable;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Contains contextual information about the execution of a {@link Command}.
  */
-public class CommandContext {
+public class CommandContext implements CustomAssignable {
 
     private boolean dry;
     private String label;
@@ -91,63 +91,6 @@ public class CommandContext {
     }
 
     /**
-     * Returns the mapping of custom properties held by this {@link CommandContext}.
-     *
-     * <p>Changes to this map are reflected in the corresponding getter/setter methods. It is recommended to use the
-     * former instead of modifying the returned map directly.</p>
-     *
-     * @return this CommandContext's custom mapping
-     */
-    public Map<String, Object> getCustomMap() {
-        return this.custom;
-    }
-
-    /**
-     * Safely retrieves and returns a custom property set on this {@link CommandContext}.
-     *
-     * <p>An empty Optional is returned if the value did not exist, or if the value did but was of the wrong type.</p>
-     *
-     * @param key the key of the property
-     * @param <T> the type of the property
-     * @return the property value?
-     */
-    @SuppressWarnings("unchecked")
-    public <T> Optional<T> getCustomSafe(String key) {
-        try {
-            return Optional.ofNullable((T) this.custom.get(key));
-        } catch (ClassCastException ignored) {
-        }
-
-        return Optional.empty();
-    }
-
-    /**
-     * Returns a custom property set on this {@link CommandContext}.
-     *
-     * <p>This method has no safety and can throw a {@link ClassCastException} if the is casted into the wrong type by
-     * the type parameter. Use {@link #getCustomSafe(String)} for null-safety and cast-safety.</p>
-     *
-     * @param key the key of the property
-     * @param <T> the type of the property
-     * @return the property value
-     */
-    public <T> T getCustom(String key) {
-        return (T) this.custom.get(key);
-    }
-
-    /**
-     * Sets a custom property on this {@link CommandContext}.
-     *
-     * @param key the key of the property
-     * @param value the value of the property
-     * @return this CommandContext
-     */
-    public CommandContext setCustom(String key, Object value) {
-        this.custom.put(key, value);
-        return this;
-    }
-
-    /**
      * Executes the {@link Command} held by this {@link CommandContext} using the given {@link Arguments}.
      *
      * <p>The context of the provided arguments object is automagically set to this context.</p>
@@ -182,4 +125,14 @@ public class CommandContext {
         this.manager.sendError(msg);
     }
 
+    @Override
+    public Map<String, Object> getCustomMap() {
+        return this.custom;
+    }
+
+    @Override
+    public CommandContext setCustom(String key, Object value) {
+        CustomAssignable.super.setCustom(key, value);
+        return this;
+    }
 }
