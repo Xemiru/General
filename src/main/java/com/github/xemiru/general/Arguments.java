@@ -166,8 +166,10 @@ public class Arguments {
      * <p>If the context denotes that the command using these Arguments is being dry-ran, this method throws an
      * {@link IllegalStateException}.</p>
      *
+     * @param <T> the type of the parameter
      * @return the next parameter successfully parsed
      *
+     * @throws ClassCastException if the requested parameter type did not match the actual
      * @throws IllegalStateException if no more parameters are held by this Arguments object
      * @throws SyntaxException if syntax errors had occured during argument parsing
      */
@@ -201,8 +203,11 @@ public class Arguments {
      * <p>If the context denotes that the command using these Arguments is being dry-ran, this method throws an
      * {@link IllegalStateException}.</p>
      *
+     * @param <T> the type of the parameter
+     * @param fallback the fallback value to use in the case of a SyntaxException
      * @return the next parameter successfully parsed
      *
+     * @throws ClassCastException if the requested parameter type did not match the actual
      * @throws IllegalStateException if no more parameters are held by this Arguments object
      */
     public <T> T next(T fallback) {

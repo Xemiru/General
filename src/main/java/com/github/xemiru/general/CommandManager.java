@@ -82,12 +82,22 @@ public class CommandManager {
     /**
      * Handles the provided command string using this {@link CommandManager}'s internal command mapping.
      *
-     * @param input the input tokens to process
+     * @param input the input string to process
      */
     public void handleCommand(String input) {
         this.handleCommand(input, null);
     }
 
+    /**
+     * Handles the provided command string using this {@link CommandManager}'s internal command mapping.
+     *
+     * <p>The given context factory is applied to create the {@link CommandContext} to be received by executed
+     * {@link Command}s.</p>
+     *
+     * @param input the input string to process
+     * @param contextFactory the context factory used to modify or create the CommandContext object to be received by
+     *     commands
+     */
     public void handleCommand(String input, Function<CommandContext, CommandContext> contextFactory) {
         this.handleCommand(input, contextFactory, this.commands);
     }
@@ -95,7 +105,13 @@ public class CommandManager {
     /**
      * Handles the provided command string using the provided collection of commands.
      *
-     * @param input the input tokens to process
+     * <p>The given context factory is applied to create the {@link CommandContext} to be received by executed
+     * {@link Command}s.</p>
+     *
+     * @param input the input string to process
+     * @param contextFactory the context factory used to modify or create the CommandContext object to be received by
+     *     commands
+     * @param commands the Set of Commands to choose from while processing the provided input string
      */
     public void handleCommand(String input, Function<CommandContext, CommandContext> contextFactory, Collection<Command> commands) {
         this.processCommand(input, contextFactory, commands, false);
@@ -112,6 +128,18 @@ public class CommandManager {
         return this.completeCommand(input, null);
     }
 
+    /**
+     * Returns completion suggestions for the last argument in the provided command string using commands from this
+     * {@link CommandManager}'s internal command mapping.
+     *
+     * <p>The given context factory is applied to create the {@link CommandContext} to be received by executed
+     * {@link Command}s.</p>
+     *
+     * @param input the input tokens to process
+     * @param contextFactory the context factory used to modify or create the CommandContext object to be received by
+     *     commands
+     * @return the list of possible completions for the last argument (can be empty)
+     */
     public List<String> completeCommand(String input, Function<CommandContext, CommandContext> contextFactory) {
         return this.completeCommand(input, contextFactory, this.commands);
     }
@@ -120,7 +148,13 @@ public class CommandManager {
      * Returns completion suggestions for the last argument in the provided command string using the provided collection
      * of commands.
      *
+     * <p>The given context factory is applied to create the {@link CommandContext} to be received by executed
+     * {@link Command}s.</p>
+     *
      * @param input the input tokens to process
+     * @param contextFactory the context factory used to modify or create the CommandContext object to be received by
+     *     commands
+     * @param commands the Set of Commands to choose from while processing the provided input string
      * @return the list of possible completions for the last argument (can be empty)
      */
     public List<String> completeCommand(String input, Function<CommandContext, CommandContext> contextFactory, Collection<Command> commands) {
@@ -211,7 +245,7 @@ public class CommandManager {
             new ParentExecutor().addCommands(commands).execute(ctx, args, ctx.isDry());
             if (tab) return args.complete();
         } catch (CommandException e) {
-            if(!ctx.isDry()) ctx.sendError(e.getMessage());
+            if (!ctx.isDry()) ctx.sendError(e.getMessage());
         } catch (SyntaxException e) {
             ctx.sendError(e.getMessage());
             ctx.sendError("Syntax: " + e.getSyntax());

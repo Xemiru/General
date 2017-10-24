@@ -16,7 +16,7 @@ public interface ArgumentParser<T> {
     /**
      * Returns the typename of the resulting kind of value returned by this {@link ArgumentParser}.
      *
-     * <p>Essentially, a human-friendly name for {@link ArgumentParser <T>}. This typename appears in any syntax error
+     * <p>Essentially, a human-friendly name for {@link T}. This typename appears in any syntax error
      * messages that result from this parser failing to correctly produce a result.</p>
      *
      * <p>Parsers in {@link ArgumentParsers} establish a common format. New implementations should try to follow.</p>
@@ -25,8 +25,8 @@ public interface ArgumentParser<T> {
      * <li>parsers taking the remaining tokens have " .." appended to the end of their typename</li>
      * </ul>
      *
-     * <p>When syntax is generated, angle brackets (<, >) surround non-optional parsers' typenames. Parsers who have a
-     * default value, either a non-empty {@link #getDefaultToken()} or {@link #getDefaultParameter()}, have their
+     * <p>When syntax is generated, angle brackets (&lt;, &gt;) surround non-optional parsers' typenames. Parsers who
+     * have a default value, either a non-empty {@link #getDefaultToken()} or {@link #getDefaultParameter()}, have their
      * typename surrounded by square brackets ([, ]). If a default token is present (and a default parameter is not
      * present and therefore did not take priority), the typename is appended to with an equals sign '\u003D'
      * ({@code u003D}) followed by the default token.</p>
