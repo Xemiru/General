@@ -33,13 +33,14 @@ public class RawArguments {
      *
      * @param n the amount of arguments to drop
      */
-    public void drop(int n) {
+    public RawArguments drop(int n) {
         if (n > this.args.length) throw new ArrayIndexOutOfBoundsException();
 
         String[] neww = new String[this.args.length - n];
         System.arraycopy(this.args, n, neww, 0, this.args.length - n);
         if (this.current >= n) this.current -= n;
         this.args = neww;
+        return this;
     }
 
     /**
