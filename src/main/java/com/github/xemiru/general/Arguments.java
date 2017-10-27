@@ -240,17 +240,18 @@ public class Arguments {
      * <p>Use with care. An {@link ArrayIndexOutOfBoundsException} can be thrown if not enough parsers were written, or
      * if parser handling had errored with the latter only showing having occured through a call to {@link #next()}.</p>
      *
-     * <p>This will also drop corresponding syntax.</p>
+     * <p>This will also drop corresponding syntax, but will not drop raw arguments.</p>
      *
      * @param n the amount of parameters to drop
      * @return this Arguments
      */
     public Arguments drop(int n) {
-        this.rawArgs.drop(n);
+        // this.rawArgs.drop(n);
         for (int i = 0; i < n; i++) {
             this.parsed.remove(0);
             this.syntax.remove(0);
             this.current--;
+            this.dropped++;
         }
 
         return this;
