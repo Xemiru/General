@@ -45,6 +45,7 @@ public class Arguments {
 
     private Error error;
     private int current;
+    private int dropped;
     private List<ArgumentParser<?>> syntax;
     private List<Parameter> parsed;
     private RawArguments rawArgs;
@@ -53,6 +54,7 @@ public class Arguments {
     public Arguments(CommandContext context, RawArguments args) {
         this.error = null;
         this.current = 0;
+        this.dropped = 0;
         this.context = context;
         this.syntax = new ArrayList<>();
         this.parsed = new ArrayList<>();
@@ -66,8 +68,9 @@ public class Arguments {
         Arguments copy = new Arguments(this.context, this.rawArgs.copy());
         copy.error = this.error;
         copy.current = this.current;
-        copy.syntax = this.syntax;
-        copy.parsed = this.parsed;
+        copy.syntax = new ArrayList<>(this.syntax);
+        copy.parsed = new ArrayList<>(this.parsed);
+        copy.dropped = this.dropped;
 
         return copy;
     }
@@ -109,12 +112,21 @@ public class Arguments {
      * @return a List of suggestions to finish the last written argument (can be empty)
      */
     public List<String> complete() {
-        String[] raw = this.rawArgs.getRaw();
+        StringBuilder sb = new StringBuilder();
+        String[] raw = this.rawArgs.copy().drop(this.dropped).getRaw();
+
         if(raw.length <= 0) return new ArrayList<>();
-        String last = raw[raw.length - 1];
+        for(String rarg : raw) sb.append(' ').append(rarg);
+
+        String input = sb.toString().substring(1); // substring to remove first space from appends
+        for(Parameter param : this.parsed)
+            // drop all successful tokens
+            if(param != this.parsed.get(this.parsed.size() - 1))
+                input = input.replaceFirst(Pattern.quote(param.token), Matcher.quoteReplacement("")).trim();
 
         Set<String> suggested;
-        ArgumentParser<?> parser = this.syntax.get(raw.length - 1);
+        ArgumentParser<?> parser = this.syntax.get(this.error == null ? this.parsed.size() - 1 : this.parsed.size());
+
         try {
             suggested = parser.getSuggestions();
         } catch (Throwable e) {
@@ -124,13 +136,17 @@ public class Arguments {
 
         if (suggested == null) return new ArrayList<>(); // return empty
 
+        char first = input.isEmpty() ? ' ' : input.charAt(0);
+        final String finput = first == '\'' || first == '"' ? input.substring(1) : input; // has to be final for removeIf
         Set<String> selection = new LinkedHashSet<>(suggested);
-        selection.removeIf(it -> !it.startsWith(last));
+        selection.removeIf(it -> !finput.isEmpty() && !it.startsWith(finput));
+
         List<String> completion = new ArrayList<>();
 
-        StringBuilder sb = new StringBuilder();
+        sb.setLength(0);
         selection.forEach(sel -> {
-            if (sel.contains(" ")) { // if we have whitespace, we need to quote it
+            // if we have whitespace or input is trying to quote, we need to quote it
+            if (sel.contains(" ") || first == '"' || first == '\'') {
                 if (sel.contains("\"") && sel.contains("\'")) {
                     // doesn't matter which we use, so we'll use " and escape any quotes already in there
                     sb.append('"')
