@@ -2,6 +2,7 @@ package com.github.xemiru.general.stock;
 
 import com.github.xemiru.general.*;
 import com.github.xemiru.general.exception.CommandException;
+import com.github.xemiru.general.exception.SyntaxException;
 
 import java.util.*;
 
@@ -110,7 +111,15 @@ public class ParentExecutor implements CommandExecutor {
             // we need to call the command dry to harvest the syntax, but we also need the matched cmd
             // so we temporarily set its context to one that lies about being dry-ran
             // this is reset when we receive the matched command's context
-            Optional<CommandContext> ctx = args.setContext(context.setDry(false)).next();
+            Optional<CommandContext> ctx;
+
+            try {
+                // we're also breaking rules here by calling next() during dry
+                ctx = args.setContext(context.setDry(false)).next();
+            } catch(SyntaxException e) {
+                // so we need to ignore the syntax error for command completion ourselves
+                ctx = Optional.empty();
+            }
 
             if (ctx == DUMMY) return;
             ctx.ifPresent(ctxx -> ctxx.setDry(true).execute(args.drop(1)));
