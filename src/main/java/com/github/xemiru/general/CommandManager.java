@@ -245,7 +245,6 @@ public class CommandManager {
 
         try {
             new ParentExecutor().addCommands(commands).execute(ctx, args, ctx.isDry());
-            if (tab) return args.complete();
         } catch (CommandException e) {
             if (!tab) ctx.sendError(e.getMessage());
         } catch (SyntaxException e) {
@@ -258,8 +257,10 @@ public class CommandManager {
             ctx.sendError("Detailed information has been logged.");
 
             e.printStackTrace();
+            return new ArrayList<>();
         }
 
+        if(tab) return args.complete();
         return new ArrayList<>();
     }
 

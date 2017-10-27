@@ -54,7 +54,7 @@ public class ArgumentParsers {
                 }
 
                 out = sb.toString().trim();
-                if (out.endsWith("\\" + qc) || !out.endsWith(qc + ""))
+                if (out.endsWith("\\" + qc) || !out.endsWith(qc + "") || out.equals("\""))
                     throw new ParseException("unfinished quoted string: " + out);
 
                 return out.substring(1, out.length() - 1);

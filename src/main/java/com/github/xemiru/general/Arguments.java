@@ -120,8 +120,8 @@ public class Arguments {
 
         String input = sb.toString().substring(1); // substring to remove first space from appends
         for(Parameter param : this.parsed)
-            // drop all successful tokens
-            if(param != this.parsed.get(this.parsed.size() - 1))
+            // drop all successful tokens, keep last if no errors found
+            if(error != null || param != this.parsed.get(this.parsed.size() - 1))
                 input = input.replaceFirst(Pattern.quote(param.token), Matcher.quoteReplacement("")).trim();
 
         Set<String> suggested;
