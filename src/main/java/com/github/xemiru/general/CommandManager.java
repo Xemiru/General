@@ -247,10 +247,12 @@ public class CommandManager {
             new ParentExecutor().addCommands(commands).execute(ctx, args, ctx.isDry());
             if (tab) return args.complete();
         } catch (CommandException e) {
-            if (!ctx.isDry()) ctx.sendError(e.getMessage());
+            if (!tab) ctx.sendError(e.getMessage());
         } catch (SyntaxException e) {
-            ctx.sendError(e.getMessage());
-            ctx.sendError("Syntax: " + e.getSyntax());
+            if (!tab) {
+                ctx.sendError(e.getMessage());
+                ctx.sendError("Syntax: " + e.getSyntax());
+            }
         } catch (Throwable e) {
             ctx.sendError("The command has crashed: " + e.getMessage());
             ctx.sendError("Detailed information has been logged.");
@@ -258,7 +260,7 @@ public class CommandManager {
             e.printStackTrace();
         }
 
-        return null;
+        return new ArrayList<>();
     }
 
 }
