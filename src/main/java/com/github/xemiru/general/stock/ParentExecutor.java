@@ -106,10 +106,11 @@ public class ParentExecutor implements CommandExecutor {
         args.write(alt(new CommandMatcher(context, this.commands), DUMMY));
 
         if (dry) {
-            // be a little hacky; we need to call the command dry to harvest the syntax
-            // make a new context that lies about being dry-ran so we can get the syntax
-            Arguments lie = args.copy().setContext(context.setDry(false));
-            Optional<CommandContext> ctx = lie.next();
+            // be a little hacky
+            // we need to call the command dry to harvest the syntax, but we also need the matched cmd
+            // so we temporarily set its context to one that lies about being dry-ran
+            // this is reset when we receive the matched command's context
+            Optional<CommandContext> ctx = args.setContext(context.setDry(false)).next();
 
             if (ctx == DUMMY) return;
             ctx.ifPresent(ctxx -> ctxx.setDry(true).execute(args.drop(1)));
