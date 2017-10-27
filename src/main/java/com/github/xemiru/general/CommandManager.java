@@ -234,10 +234,10 @@ public class CommandManager {
         CommandContext ctx = new CommandContext(this, null, null, tab);
         if (contextFactory != null) ctx = contextFactory.apply(ctx);
 
-        String[] rargs = input.split(" ");
+        String[] rargs = input.trim().split(" ");
         if (tab && input.length() > 0 && input.charAt(input.length() - 1) == ' ') {
             // if ends with space, assume the user wants to tabcomplete the param after
-            rargs = (input + "a").trim().split(" ");
+            rargs = Arrays.copyOf(rargs, rargs.length + 1);
             rargs[rargs.length - 1] = ""; // meaning we need the last param to be blank
         }
 
