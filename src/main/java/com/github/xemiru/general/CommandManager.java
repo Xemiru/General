@@ -2,6 +2,8 @@ package com.github.xemiru.general;
 
 import com.github.xemiru.general.exception.CommandException;
 import com.github.xemiru.general.exception.SyntaxException;
+import com.github.xemiru.general.misc.HelpGenerator;
+import com.github.xemiru.general.stock.DefaultHelpGenerator;
 import com.github.xemiru.general.stock.ParentExecutor;
 
 import java.util.*;
@@ -17,12 +19,14 @@ public class CommandManager {
     private BiConsumer<CommandContext, String> sendError;
 
     private Set<Command> commands;
+    private HelpGenerator helpGen;
     private Function<CommandContext, Optional<String>> preExec;
 
     public CommandManager() {
         this.setMessageHandler(null);
         this.setErrorMessageHandler(null); // methods will set a default
         this.commands = new HashSet<>();
+        this.helpGen = new DefaultHelpGenerator();
         this.setPreExecutor(null);
     }
 
@@ -201,6 +205,30 @@ public class CommandManager {
      */
     public void setErrorMessageHandler(BiConsumer<CommandContext, String> handler) {
         this.sendError = handler == null ? (ctx, msg) -> System.err.println(msg) : handler;
+    }
+
+    /**
+     * Returns the {@link HelpGenerator} used by help commands registered under this {@link CommandManager}.
+     *
+     * <p>If no HelpGenerator is assigned, commands executed will not have a help command. Help registration is
+     * dynamic, however; commands will receive their help command as soon as the CommandManager that owns them receives
+     * a HelpGenerator.</p>
+     *
+     * @return the HelpGenerator used by help commands registered under this CommandManager
+     */
+    public Optional<HelpGenerator> getHelpGenerator() {
+        return Optional.ofNullable(this.helpGen);
+    }
+
+    /**
+     * Sets the {@link HelpGenerator} used by help commands registered under this {@link CommandManager}.
+     *
+     * <p>Can be set to null to disable help commands.</p>
+     *
+     * @param helpGen the HelpGenerator used by help commands registered under this CommandManager
+     */
+    public void setHelpGenerator(HelpGenerator helpGen) {
+        this.helpGen = helpGen;
     }
 
     /**

@@ -1,12 +1,21 @@
 package com.github.xemiru.general.stock;
 
-import com.github.xemiru.general.*;
+import com.github.xemiru.general.ArgumentParser;
+import com.github.xemiru.general.Arguments;
+import com.github.xemiru.general.Command;
+import com.github.xemiru.general.CommandContext;
+import com.github.xemiru.general.CommandExecutor;
 import com.github.xemiru.general.exception.CommandException;
+import com.github.xemiru.general.misc.HelpGenerator;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.TreeMap;
 
-import static com.github.xemiru.general.ArgumentParsers.alt;
+import static com.github.xemiru.general.ArgumentParsers.INTEGER;
+import static com.github.xemiru.general.ArgumentParsers.opt;
+import static com.github.xemiru.general.ArgumentParsers.or;
 
 public class HelpExecutor implements CommandExecutor {
 
@@ -25,21 +34,25 @@ public class HelpExecutor implements CommandExecutor {
     }
 
     /**
-     * Lists a {@link Command}'s aliases in string form.
+     * Returns a {@link List} containing the given page of elements. It is possible to receive an empty list if the
+     * provided page is over the max.
      *
-     * <p>This does not include the command's main name, stored in the 0th index of the aliases array.</p>
+     * <p>The {@code page} parameter is 0-based.</p>
      *
-     * @param cmd the Command to harvest aliases from
-     * @return a String form of a list of the command's aliases, or an empty string if it has none
+     * @param page the page to receive (0-based)
+     * @return the page
      */
-    private static String aliases(Command cmd) {
-        String[] list = new String[cmd.getAliases().length - 1];
-        System.arraycopy(cmd.getAliases(), 1, list, 0, cmd.getAliases().length - 1);
+    private static <T> List<T> getPage(List<T> elements, int page, int pageSize) {
+        if (page < 0) throw new IllegalArgumentException("Page cannot be negative");
 
-        if (list.length <= 0) return "(no aliases)";
-        StringBuilder sb = new StringBuilder(list[0]);
-        for (int i = 1; i < list.length; i++) sb.append(", ").append(list[i]);
-        return sb.toString();
+        List<T> returned = new ArrayList<>();
+        for (int i = 0; i < pageSize; i++) {
+            int index = i + (pageSize * (page));
+            if (index >= elements.size()) break;
+            returned.add(elements.get(index));
+        }
+
+        return returned;
     }
 
     private List<Command> commands;
@@ -49,39 +62,51 @@ public class HelpExecutor implements CommandExecutor {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void execute(CommandContext context, Arguments args, boolean dry) {
-        args.write(alt(new ParentExecutor.CommandMatcher(context, this.commands), Optional.empty()));
+        // not supposed to reach this command if helpgen doesn't exist
+        HelpGenerator helpGen = context.getManager().getHelpGenerator().orElseThrow(
+            () -> new CommandException("Manager did not have a help generator"));
+        int pageSize = helpGen.getPageSize();
+
+        ArgumentParser<Optional<CommandContext>> cmdMatcher = new ParentExecutor.CommandMatcher(context, this.commands);
+        if (pageSize > 1) args.named("command|page", opt(or(INTEGER, cmdMatcher), "1"));
+        else args.named("command", cmdMatcher);
+
         if (dry) return;
 
-        Optional<CommandContext> ctx = args.next();
-        if (ctx.isPresent()) {
-            try {
-                String syntax;
-                Command cmd = ctx.get().getCommand();
-                if (cmd.getSyntax().isPresent()) syntax = cmd.getSyntax().get();
-                else {
-                    Arguments simArgs = new Arguments(ctx.get(), new RawArguments(new String[0]));
-                    ctx.get().setDry(true).execute(simArgs);
-                    syntax = simArgs.getSyntax();
-                }
+        Arguments.Parameter<?> param = args.nextParameter();
+        Object next = param.getValue();
 
-                context.sendMessage("Help for: " + cmd.getName());
-                context.sendMessage("Syntax: " + cmd.getName() + " " + syntax);
-                context.sendMessage("Aliases: " + aliases(cmd));
-                context.sendMessage(cmd.getDescription().orElse(cmd.getShortDescription()
-                    .orElse("This command has no help text.")));
-            } catch (Throwable e) {
-                throw new CommandException("That command crashed when we tried to ask it about itself. Oops.", e);
-            }
-        } else {
-            StringBuilder sb = new StringBuilder();
-            for (Command cmd : this.commands) {
-                sb.append(cmd.getName())
-                    .append(" -- ")
-                    .append(cmd.getShortDescription().orElse("This command has no short help text."));
-                context.sendMessage(sb.toString().trim());
-                sb.setLength(0);
-            }
+        if (next instanceof Integer) { // specified a page
+            int page = pageSize == 0 ? 0 : (int) next;
+            int maxPage = pageSize == 0 ? 0 : (int) Math.ceil((double) this.commands.size() / pageSize);
+
+            if (pageSize > 0 && page < 1) page = 1; // replace bad input with default good input
+
+            // gather elements
+            TreeMap<String, Optional<String>> helpMap = new TreeMap<>(helpGen.getSorter());
+            List<Command> commands = new ArrayList<>(this.commands);
+
+            // sort commands first to correctly paginate
+            commands.sort((a, b) -> helpGen.getSorter().compare(a.getName(), b.getName()));
+
+            // get page
+            List<Command> elements = new ArrayList<>(pageSize <= 0 ? commands
+                : HelpExecutor.getPage(commands, page - 1, helpGen.getPageSize()));
+
+            // push to map and send
+            elements.forEach(cmd -> helpMap.put(cmd.getName(), cmd.getShortDescription()));
+            helpGen.sendHelp(context, helpMap, page, maxPage);
+        } else { // specified a command
+            Optional<CommandContext> ctx = (Optional<CommandContext>) next;
+            if (ctx.isPresent()) {
+                try {
+                    helpGen.sendFullHelp(context, new HelpGenerator.HelpInfo(ctx.get()));
+                } catch (Throwable e) {
+                    throw helpGen.createError(context, param.getToken());
+                }
+            } else throw helpGen.createErrorUnknown(context, param.getToken());
         }
     }
 }

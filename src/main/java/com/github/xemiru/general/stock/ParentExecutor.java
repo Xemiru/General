@@ -1,10 +1,21 @@
 package com.github.xemiru.general.stock;
 
-import com.github.xemiru.general.*;
+import com.github.xemiru.general.ArgumentParser;
+import com.github.xemiru.general.Arguments;
+import com.github.xemiru.general.Command;
+import com.github.xemiru.general.CommandContext;
+import com.github.xemiru.general.CommandExecutor;
+import com.github.xemiru.general.RawArguments;
 import com.github.xemiru.general.exception.CommandException;
 import com.github.xemiru.general.exception.SyntaxException;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import static com.github.xemiru.general.ArgumentParsers.STRING;
 import static com.github.xemiru.general.ArgumentParsers.alt;
@@ -43,6 +54,10 @@ public class ParentExecutor implements CommandExecutor {
             String name = STRING.parse(args);
             for (Command cmd : this.commands) {
                 if (cmd.hasName(name)) {
+                    // don't find help commands if we don't have a helpgen
+                    if (!this.parent.getManager().getHelpGenerator().isPresent()
+                        && cmd.getExec() instanceof HelpExecutor) continue;
+
                     CommandContext rctx = new CommandContext(this.parent.getManager(), cmd, name, this.parent.isDry());
                     parent.getCustomMap().forEach(rctx::setCustom);
                     return Optional.of(rctx);
@@ -55,7 +70,13 @@ public class ParentExecutor implements CommandExecutor {
         @Override
         public Set<String> getSuggestions() {
             Set<String> returned = new LinkedHashSet<>();
-            for (Command cmd : this.commands) returned.add(cmd.getName());
+            for (Command cmd : this.commands) {
+                // don't find help commands if we don't have a helpgen
+                if (!this.parent.getManager().getHelpGenerator().isPresent()
+                    && cmd.getExec() instanceof HelpExecutor) continue;
+                returned.add(cmd.getName());
+            }
+
             return returned;
         }
     }
@@ -116,7 +137,7 @@ public class ParentExecutor implements CommandExecutor {
             try {
                 // we're also breaking rules here by calling next() during dry
                 ctx = args.setContext(context.setDry(false)).next();
-            } catch(SyntaxException e) {
+            } catch (SyntaxException e) {
                 // so we need to ignore the syntax error for command completion ourselves
                 ctx = Optional.empty();
             }
@@ -126,8 +147,10 @@ public class ParentExecutor implements CommandExecutor {
         } else {
             Optional<CommandContext> ctx = args.next();
             if (!ctx.isPresent() || (ctx == DUMMY && this.fallback == null)) {
-                String suggest = context.getLabel() == null ? "help" : context.getLabel() + " help";
-                throw new CommandException(String.format("Unknown command. Try \"%s\".", suggest));
+                if(context.getManager().getHelpGenerator().isPresent()) {
+                    String suggest = context.getLabel() == null ? "help" : context.getLabel() + " help";
+                    throw new CommandException(String.format("Unknown command. Try \"%s\".", suggest));
+                } else throw new CommandException("Unknown command.");
             }
 
             if (ctx == DUMMY) fallback.execute(context, args, false);
