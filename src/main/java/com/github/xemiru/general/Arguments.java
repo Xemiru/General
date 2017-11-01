@@ -3,7 +3,11 @@ package com.github.xemiru.general;
 import com.github.xemiru.general.exception.ParseException;
 import com.github.xemiru.general.exception.SyntaxException;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -31,14 +35,22 @@ public class Arguments {
 
     }
 
-    private static class Parameter {
+    public static class Parameter<T> {
 
         String token;
-        Object value;
+        T value;
 
-        Parameter(String token, Object value) {
+        private Parameter(String token, T value) {
             this.token = token;
             this.value = value;
+        }
+
+        public T getValue() {
+            return this.value;
+        }
+
+        public String getToken() {
+            return this.token;
         }
 
     }
@@ -47,7 +59,7 @@ public class Arguments {
     private int current;
     private int dropped;
     private List<ArgumentParser<?>> syntax;
-    private List<Parameter> parsed;
+    private List<Parameter<?>> parsed;
     private RawArguments rawArgs;
     private CommandContext context;
 
@@ -115,13 +127,13 @@ public class Arguments {
         StringBuilder sb = new StringBuilder();
         String[] raw = this.rawArgs.copy().drop(this.dropped).getRaw();
 
-        if(raw.length <= 0) return new ArrayList<>();
-        for(String rarg : raw) sb.append(' ').append(rarg);
+        if (raw.length <= 0) return new ArrayList<>();
+        for (String rarg : raw) sb.append(' ').append(rarg);
 
         String input = sb.toString().substring(1); // substring to remove first space from appends
-        for(Parameter param : this.parsed)
+        for (Parameter param : this.parsed)
             // drop all successful tokens, keep last if no errors found
-            if(error != null || param != this.parsed.get(this.parsed.size() - 1))
+            if (error != null || param != this.parsed.get(this.parsed.size() - 1))
                 input = input.replaceFirst(Pattern.quote(param.token), Matcher.quoteReplacement("")).trim();
 
         Set<String> suggested;
@@ -190,20 +202,7 @@ public class Arguments {
      * @throws SyntaxException if syntax errors had occured during argument parsing
      */
     public <T> T next() {
-        if (this.context.isDry()) throw new IllegalStateException("Cannot request parameters during dry-run");
-
-        if (this.isErrored()) {
-            if (this.error.exception != null) throw new RuntimeException(this.error.exception);
-            String syn = this.context.getLabel() + " " + this.getSyntax();
-            if (this.context.getCommand() != null && this.context.getCommand().getSyntax().isPresent()) {
-                syn = this.context.getCommand().getSyntax().get();
-            }
-
-            throw new SyntaxException(syn, this.error.message);
-        }
-
-        if (this.parsed.isEmpty()) throw new IllegalStateException("No more parameters");
-        return (T) this.parsed.get(this.current++).value;
+        return this.<T>nextParameter().getValue();
     }
 
     /**
@@ -232,6 +231,45 @@ public class Arguments {
         } catch (SyntaxException e) {
             return fallback;
         }
+    }
+
+    /**
+     * Returns the next parameter that was successfully parsed.
+     *
+     * <p>The order of the parameters is set by the order of the calls to the write methods. Each call to a write method
+     * will add to the parameters held by this {@link Arguments} object.</p>
+     *
+     * <p>Any syntax errors withheld by calls the write methods will be thrown when calling this method -- this allows
+     * the syntax string to be generated.</p>
+     *
+     * <p>If there are no more parameters, this method throws an {@link IllegalStateException}.</p>
+     *
+     * <p>If the context denotes that the command using these Arguments is being dry-ran, this method throws an
+     * {@link IllegalStateException}.</p>
+     *
+     * @param <T> the type of the parameter
+     * @return the next parameter successfully parsed
+     *
+     * @throws ClassCastException if the requested parameter type did not match the actual
+     * @throws IllegalStateException if no more parameters are held by this Arguments object
+     * @throws SyntaxException if syntax errors had occured during argument parsing
+     */
+    @SuppressWarnings("unchecked")
+    public <T> Parameter<T> nextParameter() {
+        if (this.context.isDry()) throw new IllegalStateException("Cannot request parameters during dry-run");
+
+        if (this.isErrored()) {
+            if (this.error.exception != null) throw new RuntimeException(this.error.exception);
+            String syn = this.context.getLabel() + " " + this.getSyntax();
+            if (this.context.getCommand() != null && this.context.getCommand().getSyntax().isPresent()) {
+                syn = this.context.getCommand().getSyntax().get();
+            }
+
+            throw new SyntaxException(syn, this.error.message);
+        }
+
+        if (this.parsed.size() <= this.current) throw new IllegalStateException("No more parameters");
+        return (Parameter<T>) this.parsed.get(this.current++);
     }
 
     /**
@@ -374,7 +412,7 @@ public class Arguments {
             RawArguments args = this.rawArgs;
             if (!firstArg.isPresent()) {
                 if (defVal.isPresent()) {
-                    this.parsed.add(new Parameter("", defVal.get()));
+                    this.parsed.add(new Parameter<>("", defVal.get()));
                     return this;
                 } else args = new RawArguments(new String[]{def.get()});
             }
@@ -391,7 +429,7 @@ public class Arguments {
                         "invalid value: " + parsed :
                         errorMsg + ": " + parsed);
                 } else {
-                    this.parsed.add(new Parameter(parsed, value));
+                    this.parsed.add(new Parameter<>(parsed, value));
                 }
             } catch (ParseException e) {
                 this.error = new Error(e.getMessage());
