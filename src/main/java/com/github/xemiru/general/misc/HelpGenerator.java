@@ -144,6 +144,8 @@ public interface HelpGenerator {
      * parameter to perform it themselves. The {@code page} and {@code maxPage} parameters exists purely to be able to
      * relay such information back to the user.</p>
      *
+     * <p>It is possible to receive an empty map if the user attempts to provide a page out of bounds.</p>
+     *
      * @param context the context executing the help command
      * @param help the mapping of command names to short descriptions
      * @param page the requested page
