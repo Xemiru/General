@@ -9,6 +9,7 @@ import com.github.xemiru.general.exception.CommandException;
 import com.github.xemiru.general.misc.HelpGenerator;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.TreeMap;
@@ -67,7 +68,7 @@ public class HelpExecutor implements CommandExecutor {
         // not supposed to reach this command if helpgen doesn't exist
         HelpGenerator helpGen = context.getManager().getHelpGenerator().orElseThrow(
             () -> new CommandException("Manager did not have a help generator"));
-        int pageSize = helpGen.getPageSize();
+        int pageSize = helpGen.getPageSize(context);
 
         ArgumentParser<Optional<CommandContext>> cmdMatcher = new ParentExecutor.CommandMatcher(context, this.commands);
         if (pageSize > 1) args.named("command|page", opt(or(INTEGER, cmdMatcher), "1"));
@@ -85,15 +86,16 @@ public class HelpExecutor implements CommandExecutor {
             if (pageSize > 0 && page < 1) page = 1; // replace bad input with default good input
 
             // gather elements
-            TreeMap<String, Optional<String>> helpMap = new TreeMap<>(helpGen.getSorter());
+            Comparator<String> sorter = helpGen.getSorter(context);
+            TreeMap<String, Optional<String>> helpMap = new TreeMap<>(sorter);
             List<Command> commands = new ArrayList<>(this.commands);
 
             // sort commands first to correctly paginate
-            commands.sort((a, b) -> helpGen.getSorter().compare(a.getName(), b.getName()));
+            commands.sort((a, b) -> sorter.compare(a.getName(), b.getName()));
 
             // get page
             List<Command> elements = new ArrayList<>(pageSize <= 0 ? commands
-                : HelpExecutor.getPage(commands, page - 1, helpGen.getPageSize()));
+                : HelpExecutor.getPage(commands, page - 1, pageSize));
 
             // push to map and send
             elements.forEach(cmd -> helpMap.put(cmd.getName(), cmd.getShortDescription()));
