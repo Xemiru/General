@@ -119,15 +119,23 @@ public interface HelpGenerator {
      * {@link #sendHelp(CommandContext, TreeMap, int, int)}. The method will always receive 0 as the requested and max
      * page if this is disabled.</p>
      *
+     * <p>The value can be adapted based on the provided context.</p>
+     *
+     * @param context the context executing the help command
      * @return the amount of items to be shown in a help page
      */
-    int getPageSize();
+    int getPageSize(CommandContext context);
 
     /**
+     * Returns the sorting method used to organize commands prior to pagination.
+     *
+     * <p>The comparator can be adapted based on the provided context.</p>
+     *
+     * @param context the context executing the help command
      * @return the comparator used to sort entries when providing commands with short descriptions (a call to
      *     {@link #sendHelp(CommandContext, TreeMap, int, int)}
      */
-    Comparator<String> getSorter();
+    Comparator<String> getSorter(CommandContext context);
 
     /**
      * Sends help text.

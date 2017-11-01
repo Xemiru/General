@@ -35,12 +35,12 @@ import java.util.TreeMap;
 public class DefaultHelpGenerator implements HelpGenerator {
 
     @Override
-    public int getPageSize() {
+    public int getPageSize(CommandContext context) {
         return 0;
     }
 
     @Override
-    public Comparator<String> getSorter() {
+    public Comparator<String> getSorter(CommandContext context) {
         return String::compareToIgnoreCase;
     }
 
