@@ -32,7 +32,7 @@ public class ParentExecutor implements CommandExecutor {
     /**
      * Dummy return value used to signify that the user didn't even try to input anything.
      */
-    private static final Optional<CommandContext> DUMMY = Optional.of(new CommandContext(null, null, null, false));
+    public static final Optional<CommandContext> DUMMY = Optional.of(new CommandContext(null, null, null, false));
 
     public static class CommandMatcher implements ArgumentParser<Optional<CommandContext>> {
 

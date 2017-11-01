@@ -7,6 +7,7 @@ import com.github.xemiru.general.CommandContext;
 import com.github.xemiru.general.CommandExecutor;
 import com.github.xemiru.general.exception.CommandException;
 import com.github.xemiru.general.misc.HelpGenerator;
+import javafx.scene.Parent;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -15,6 +16,7 @@ import java.util.Optional;
 import java.util.TreeMap;
 
 import static com.github.xemiru.general.ArgumentParsers.INTEGER;
+import static com.github.xemiru.general.ArgumentParsers.alt;
 import static com.github.xemiru.general.ArgumentParsers.opt;
 import static com.github.xemiru.general.ArgumentParsers.or;
 
@@ -72,15 +74,15 @@ public class HelpExecutor implements CommandExecutor {
 
         ArgumentParser<Optional<CommandContext>> cmdMatcher = new ParentExecutor.CommandMatcher(context, this.commands);
         if (pageSize > 1) args.named("command|page", opt(or(INTEGER, cmdMatcher), "1"));
-        else args.named("command", cmdMatcher);
+        else args.named("command", alt(cmdMatcher, ParentExecutor.DUMMY));
 
         if (dry) return;
 
         Arguments.Parameter<?> param = args.nextParameter();
         Object next = param.getValue();
 
-        if (next instanceof Integer) { // specified a page
-            int page = pageSize == 0 ? 0 : (int) next;
+        if (next == ParentExecutor.DUMMY || next instanceof Integer) { // specified a page
+            int page = pageSize == 0 ? 0 : next instanceof Integer ? (int) next : 1;
             int maxPage = pageSize == 0 ? 0 : (int) Math.ceil((double) this.commands.size() / pageSize);
 
             if (pageSize > 0 && page < 1) page = 1; // replace bad input with default good input
