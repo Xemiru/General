@@ -32,6 +32,7 @@ public class RawArguments {
      * {@link ArrayIndexOutOfBoundsException}.</p>
      *
      * @param n the amount of arguments to drop
+     * @return this RawArguments
      */
     public RawArguments drop(int n) {
         if (n > this.args.length) throw new ArrayIndexOutOfBoundsException();

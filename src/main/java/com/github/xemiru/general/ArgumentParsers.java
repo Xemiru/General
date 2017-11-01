@@ -3,7 +3,13 @@ package com.github.xemiru.general;
 import com.github.xemiru.general.exception.ParseException;
 import com.github.xemiru.general.exception.SyntaxException;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * A collection of {@link ArgumentParsers} to use during command handling.
