@@ -13,7 +13,7 @@ public class TestParsers {
 
     @Test
     public void parsers() {
-        System.out.println("TEST PARSERS\n");
+        System.out.println("\nTEST PARSERS\n");
 
         assertEquals("pop", test(STRING, "pop"));
         assertEquals("pop", test(STRING, "pop py"));
