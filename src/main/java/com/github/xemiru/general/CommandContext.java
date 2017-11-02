@@ -2,6 +2,7 @@ package com.github.xemiru.general;
 
 import com.github.xemiru.general.exception.CommandException;
 import com.github.xemiru.general.misc.CustomAssignable;
+import com.github.xemiru.general.misc.CustomKey;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,7 +16,7 @@ public class CommandContext implements CustomAssignable {
     private String label;
     private Command command;
     private CommandManager manager;
-    private Map<String, Object> custom;
+    private Map<CustomKey<?>, Object> custom;
 
     public CommandContext(CommandManager manager, Command command, String label, boolean dry) {
         this.dry = dry;
@@ -126,12 +127,12 @@ public class CommandContext implements CustomAssignable {
     }
 
     @Override
-    public Map<String, Object> getCustomMap() {
+    public Map<CustomKey<?>, Object> getCustomMap() {
         return this.custom;
     }
 
     @Override
-    public CommandContext setCustom(String key, Object value) {
+    public <T> CommandContext setCustom(CustomKey<T> key, T value) {
         CustomAssignable.super.setCustom(key, value);
         return this;
     }

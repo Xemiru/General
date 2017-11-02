@@ -8,6 +8,7 @@ import com.github.xemiru.general.CommandExecutor;
 import com.github.xemiru.general.RawArguments;
 import com.github.xemiru.general.exception.CommandException;
 import com.github.xemiru.general.exception.SyntaxException;
+import com.github.xemiru.general.misc.CustomKey;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -59,7 +60,7 @@ public class ParentExecutor implements CommandExecutor {
                         && cmd.getExec() instanceof HelpExecutor) continue;
 
                     CommandContext rctx = new CommandContext(this.parent.getManager(), cmd, name, this.parent.isDry());
-                    parent.getCustomMap().forEach(rctx::setCustom);
+                    parent.getCustomMap().forEach((k, v) -> rctx.setCustom((CustomKey<Object>) k, v));
                     return Optional.of(rctx);
                 }
             }

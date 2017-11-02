@@ -12,7 +12,7 @@ public interface CustomAssignable extends CustomRetrievable {
      * @param value the value of the property
      * @return this CustomAssignable
      */
-    default CustomAssignable setCustom(String key, Object value) {
+    default <T> CustomAssignable setCustom(CustomKey<T> key, T value) {
         this.getCustomMap().put(key, value);
         return this;
     }

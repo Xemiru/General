@@ -1,6 +1,7 @@
 package com.github.xemiru.general;
 
 import com.github.xemiru.general.misc.CustomAssignable;
+import com.github.xemiru.general.misc.CustomKey;
 import com.github.xemiru.general.misc.CustomRetrievable;
 import com.github.xemiru.general.stock.ParentExecutor;
 
@@ -12,18 +13,18 @@ public class Command implements CustomRetrievable {
 
     // ask me what this generic is for i fuckin dare you
     // (removing code duplication)
-    public static class Builder<T extends Builder> implements CustomAssignable {
+    public static class BaseBuilder<T extends BaseBuilder> implements CustomAssignable {
 
         Command cmd;
-        private Map<String, Object> customs;
+        private Map<CustomKey<?>, Object> customs;
 
-        private Builder() {
+        private BaseBuilder() {
             this.cmd = new Command();
             this.customs = new HashMap<>();
         }
 
         @Override
-        public Map<String, Object> getCustomMap() {
+        public Map<CustomKey<?>, Object> getCustomMap() {
             return this.customs;
         }
 
@@ -90,12 +91,6 @@ public class Command implements CustomRetrievable {
             return (T) this;
         }
 
-        @Override
-        public Builder setCustom(String key, Object value) {
-            CustomAssignable.super.setCustom(key, value);
-            return this;
-        }
-
         /**
          * Builds the command.
          *
@@ -114,7 +109,22 @@ public class Command implements CustomRetrievable {
 
     }
 
-    public static class ParentBuilder extends Builder<ParentBuilder> {
+    // this exists because somehow, setCustom gets discovered twice by intellij
+    // with a safe version and an unsafe version
+    // getting it away from the generified base builder class gets rid of that
+    public static class Builder extends BaseBuilder<Builder> {
+
+        private Builder() {}
+
+        @Override
+        public <T> Builder setCustom(CustomKey<T> key, T value) {
+            super.setCustom(key, value);
+            return this;
+        }
+
+    }
+
+    public static class ParentBuilder extends BaseBuilder<ParentBuilder> {
 
         private List<Command> subcmd;
 
@@ -134,7 +144,7 @@ public class Command implements CustomRetrievable {
         }
 
         @Override
-        public ParentBuilder setCustom(String key, Object value) {
+        public <T> ParentBuilder setCustom(CustomKey<T> key, T value) {
             super.setCustom(key, value);
             return this;
         }
@@ -169,13 +179,13 @@ public class Command implements CustomRetrievable {
     private String shortDesc;
     private String description;
     private CommandExecutor exec;
-    private Map<String, Object> customs;
+    private Map<CustomKey<?>, Object> customs;
 
     private Command() {
     }
 
     @Override
-    public Map<String, Object> getCustomMap() {
+    public Map<CustomKey<?>, Object> getCustomMap() {
         return this.customs;
     }
 
