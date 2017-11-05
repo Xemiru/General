@@ -183,7 +183,7 @@ public class ArgumentParsers {
             public T parse(RawArguments args) {
                 String str = STRING.parse(args);
                 for (String sel : this.selection) {
-                    if (sel.equalsIgnoreCase(str)) return parser.parse(new RawArguments(new String[]{str}));
+                    if (sel.equalsIgnoreCase(str)) return parser.parse(new RawArguments(new String[]{sel}));
                 }
 
                 throw new ParseException("unknown choice: " + str);

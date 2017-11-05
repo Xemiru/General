@@ -26,7 +26,7 @@ public class TestParsers {
 
         System.out.println("\nTEST GENERATORS\n");
 
-        assertEquals(2, (int) test(anyOf(INTEGER, "2", "4"), "2"));
+        assertEquals("poopy", test(anyOf(STRING, "poopy", "hhhh"), "POOPY"));
         assertEquals(3.5, test(or(INTEGER, NUMBER), "3.5"));
         assertEquals(Arrays.asList(1, 2, 3, 4), test(remain(INTEGER), "1 2 3 4"));
         assertEquals("poopy", test(opt(STRING, "poopy"), ""));
