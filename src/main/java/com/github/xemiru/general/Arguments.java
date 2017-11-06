@@ -211,34 +211,6 @@ public class Arguments {
      * <p>The order of the parameters is set by the order of the calls to the write methods. Each call to a write method
      * will add to the parameters held by this {@link Arguments} object.</p>
      *
-     * <p>The fallback value is returned in a case where a {@link SyntaxException} would otherwise be thrown.</p>
-     *
-     * <p>If there are no more parameters, this method throws an {@link IllegalStateException}.</p>
-     *
-     * <p>If the context denotes that the command using these Arguments is being dry-ran, this method throws an
-     * {@link IllegalStateException}.</p>
-     *
-     * @param <T> the type of the parameter
-     * @param fallback the fallback value to use in the case of a SyntaxException
-     * @return the next parameter successfully parsed
-     *
-     * @throws ClassCastException if the requested parameter type did not match the actual
-     * @throws IllegalStateException if no more parameters are held by this Arguments object
-     */
-    public <T> T next(T fallback) {
-        try {
-            return this.next();
-        } catch (SyntaxException e) {
-            return fallback;
-        }
-    }
-
-    /**
-     * Returns the next parameter that was successfully parsed.
-     *
-     * <p>The order of the parameters is set by the order of the calls to the write methods. Each call to a write method
-     * will add to the parameters held by this {@link Arguments} object.</p>
-     *
      * <p>Any syntax errors withheld by calls the write methods will be thrown when calling this method -- this allows
      * the syntax string to be generated.</p>
      *
