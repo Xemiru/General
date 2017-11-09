@@ -1,0 +1,12 @@
+dist: trusty
+sudo: false
+
+language: java
+jdk: oraclejdk8
+
+before_install:
+  - cd $TRAVIS_BUILD_DIR
+  - chmod +x ./gradlew
+  - bash ./scripts/initialize.sh
+
+script: bash ./scripts/compile.sh
