@@ -10,6 +10,7 @@ public interface CustomAssignable extends CustomRetrievable {
      *
      * @param key the key of the property
      * @param value the value of the property
+     * @param <T> the resolution type of the property
      * @return this CustomAssignable
      */
     default <T> CustomAssignable setCustom(CustomKey<T> key, T value) {
