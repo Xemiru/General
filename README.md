@@ -1,5 +1,7 @@
 # General
 
+![Travis CI Status](https://travis-ci.org/Xemiru/General.svg?branch=develop)
+
 A worry-free command system.
 
 General'll let you worry only about your own command logic. Everything else, from argument parsing, to syntax generation, to even the basic help command is done for you. See the Quick-start section below for a quick breakdown of what it can do, or head to the wiki to learn more!
