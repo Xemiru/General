@@ -1,8 +1,28 @@
 # General
 
+![Travis CI Status](https://travis-ci.org/Xemiru/General.svg?branch=develop)
+
 A worry-free command system.
 
 General'll let you worry only about your own command logic. Everything else, from argument parsing, to syntax generation, to even the basic help command is done for you. See the Quick-start section below for a quick breakdown of what it can do, or head to the wiki to learn more!
+
+Java documentation for the latest version can be found at [https://xemiru.github.io/General/latest/](https://xemiru.github.io/General/latest/). `latest` can be replaced with a release version number to see that version's javadocs.
+
+#### Gradle
+```groovy
+// build.gradle
+
+repositories {
+    mavenCentral()
+    // or if you need snapshot versions
+    maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
+}
+
+dependencies {
+    // replace VERSION with the version you need
+    compile "com.github.xemiru:general:VERSION"
+}
+```
 
 ## Quick-start
 
@@ -89,4 +109,4 @@ Syntax: add <number> <number>
 Too big!
 ```
 
-[General is also ready for command completion,](https://github.com/Xemiru/General/wiki/Argument-Parsers#parameter-completion) and is pretty easy to [adapt into your own environment.](https://github.com/Xemiru/General/wiki/Adapting-General)
+[General is also ready for command completion](https://github.com/Xemiru/General/wiki/Argument-Parsers#parameter-completion).

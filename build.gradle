@@ -1,9 +1,36 @@
-group 'com.github.xemiru'
-version '1.0-SNAPSHOT'
+plugins {
+    id 'java'
+    id 'maven'
+    id 'signing'
+    id 'net.nemerosa.versioning' version '2.6.1'
+    id 'io.codearte.nexus-staging' version '0.11.0'
+}
 
-apply plugin: 'java'
+ext {
+    if (project.hasProperty("onTravis") && onTravis == "true") {
+        gitBuild = travisBuild
+        gitBranch = travisBranch
+    } else {
+        gitBuild = versioning.info.build
+        gitBranch = versioning.info.branchId
+    }
+
+    // http://semver.org/spec/v2.0.0.html
+    versionMajor = 1
+    versionMinor = 0
+    versionPatch = 0
+    versionString = "$versionMajor . $versionMinor . $versionPatch".replaceAll(' ', '')
+    finalVersionString = versionString + (gitBranch.equals('develop') ? '-SNAPSHOT' : gitBranch.equals('master') ? '' : "-$gitBranch-$gitBuild")
+}
+
+group 'com.github.xemiru'
+description 'https://github.com/Xemiru/General'
+version finalVersionString
 
 sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+// dependencies
 
 repositories {
     mavenCentral()
@@ -11,4 +38,80 @@ repositories {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+// deployment
+
+task versionStringFile {
+    def file = new File("$projectDir/version")
+    file.createNewFile()
+    file.text = "$finalVersionString"
+}
+
+task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from javadoc
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives javadocJar, sourcesJar
+}
+
+signing {
+    sign configurations.archives
+}
+
+// uploading
+
+uploadArchives {
+  repositories {
+    mavenDeployer {
+      beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+      repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+        authentication(userName: sonaUser, password: sonaPass)
+      }
+
+      snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+        authentication(userName: sonaUser, password: sonaPass)
+      }
+
+      pom.project {
+        name "$project.name"
+        packaging 'jar'
+        description 'https://github.com/Xemiru/General'
+        url 'https://github.com/Xemiru/General'
+
+        scm {
+          url 'git@github.com:Xemiru/General.git'
+          connection 'git@github.com:Xemiru/General.git'
+          developerConnection 'git@github.com:Xemiru/General.git'
+        }
+
+        licenses {
+          license {
+            name 'The MIT License'
+            url 'https://opensource.org/licenses/MIT'
+          }
+        }
+
+        developers {
+          developer {
+            id 'xemiru'
+            name 'Xemiru'
+            email 'xemiruk@gmail.com'
+          }
+        }
+      }
+    }
+  }
+}
+
+nexusStaging {
+    packageGroup 'com.github.xemiru'
 }

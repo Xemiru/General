@@ -162,18 +162,20 @@ public interface HelpGenerator {
     void sendFullHelp(CommandContext context, HelpInfo info);
 
     /**
-     * Send an error message when the queried command crashes during information harvesting.
+     * Creates a {@link CommandException} to be thrown when the queried command crashes during information harvesting.
      *
      * @param ctx the context executing the help command
      * @param input the input matching the crashing command
+     * @return a CommandException to be thrown
      */
     CommandException createError(CommandContext ctx, String input);
 
     /**
-     * Sends an error message when provided with an unknown command.
+     * Creates a {@link CommandException} to be thrown when provided with an unknown command.
      *
      * @param ctx the context executing the help command
      * @param input the input deemed as an unknown command reference
+     * @return a CommandException to be thrown
      */
     CommandException createErrorUnknown(CommandContext ctx, String input);
 
