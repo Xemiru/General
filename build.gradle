@@ -15,7 +15,11 @@ ext {
         gitBranch = versioning.info.branchId
     }
 
-    versionString = "1.0"
+    // http://semver.org/spec/v2.0.0.html
+    versionMajor = 1
+    versionMinor = 0
+    versionPatch = 0
+    versionString = "$versionMajor . $versionMinor . $versionPatch".replaceAll(' ', '')
 }
 
 group 'com.github.xemiru'
