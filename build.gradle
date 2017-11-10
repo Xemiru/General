@@ -20,11 +20,12 @@ ext {
     versionMinor = 0
     versionPatch = 0
     versionString = "$versionMajor . $versionMinor . $versionPatch".replaceAll(' ', '')
+    finalVersionString = versionString + (gitBranch.equals('develop') ? '-SNAPSHOT' : gitBranch.equals('master') ? '' : "-$gitBranch-$gitBuild")
 }
 
 group 'com.github.xemiru'
 description 'https://github.com/Xemiru/General'
-version versionString + (gitBranch.equals('develop') ? '-SNAPSHOT' : gitBranch.equals('master') ? '' : "-$gitBranch-$gitBuild")
+version finalVersionString
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -40,6 +41,12 @@ dependencies {
 }
 
 // deployment
+
+task versionStringFile {
+    def file = new File("$projectDir/version")
+    file.createNewFile()
+    file.text = "$finalVersionString"
+}
 
 task javadocJar(type: Jar) {
     classifier = 'javadoc'
