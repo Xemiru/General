@@ -19,7 +19,7 @@ mkdir $VERSION
 cd $VERSION
 
 # Generate javadocs.
-javadoc -sourcepath $TRAVIS_BUILD_DIR/src/main/java/ -link https://docs.oracle.com/javase/8/docs/api/ -subpackages com.github.xemiru.general -windowtitle "General v$VERSION Javadoc" -doctitle "General v$VERSION Javadoc"
+javadoc -sourcepath $TRAVIS_BUILD_DIR/src/main/java/ -link https://docs.oracle.com/javase/8/docs/api/ -subpackages com.github.xemiru.general -windowtitle "General v$ARTIFACT_VERSION Javadoc" -doctitle "General v$ARTIFACT_VERSION Javadoc"
 
 # Push to Git.
 git config --global user.name "Travis CI"

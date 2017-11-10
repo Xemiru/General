@@ -10,7 +10,7 @@ ls ./build/libs
 export VERSION_BRANCH=$TRAVIS_BRANCH
 export VERSION_COMMIT=$TRAVIS_COMMIT
 export VERSION_TAG=$TRAVIS_TAG
-export VERSION=$(<version)
+export ARTIFACT_VERSION=$(<version)
 
 # Push javadocs for release versions and snapshot versions.
 [[ "$VERSION_BRANCH" = "develop" ]] && bash ./scripts/javadocs.sh latest
