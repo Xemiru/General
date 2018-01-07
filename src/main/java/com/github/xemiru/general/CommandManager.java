@@ -6,7 +6,13 @@ import com.github.xemiru.general.misc.HelpGenerator;
 import com.github.xemiru.general.stock.DefaultHelpGenerator;
 import com.github.xemiru.general.stock.ParentExecutor;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -15,8 +21,8 @@ import java.util.function.Function;
  */
 public class CommandManager {
 
-    private BiConsumer<CommandContext, String> sendMessage;
-    private BiConsumer<CommandContext, String> sendError;
+    private BiConsumer<CommandContext, String[]> sendMessage;
+    private BiConsumer<CommandContext, String[]> sendError;
 
     private Set<Command> commands;
     private HelpGenerator helpGen;
@@ -166,12 +172,12 @@ public class CommandManager {
     }
 
     /**
-     * Sends a message using this {@link CommandManager}'s message sending handler.
+     * Sends messages using this {@link CommandManager}'s message sending handler.
      *
      * @param context the context the message is coming from
-     * @param msg the message to send
+     * @param msg the messages to send
      */
-    public void sendMessage(CommandContext context, String msg) {
+    public void sendMessage(CommandContext context, String... msg) {
         this.sendMessage.accept(context, msg);
     }
 
@@ -181,18 +187,36 @@ public class CommandManager {
      * <p>If null is passed, this defaults to sending messages to the standard output stream ({@link System#out}).</p>
      *
      * @param handler the new message handler
+     * @deprecated Will not handle multiline messages unless passed a string with manual line breaks. Use
+     *     {@link CommandManager#setMessagesHandler(BiConsumer)} instead.
      */
+    @Deprecated
     public void setMessageHandler(BiConsumer<CommandContext, String> handler) {
-        this.sendMessage = handler == null ? (ctx, msg) -> System.out.println(msg) : handler;
+        this.setMessagesHandler(handler == null ? null : (ctx, msgs) -> {
+            for (String msg : msgs) handler.accept(ctx, msg);
+        });
     }
 
     /**
-     * Sends an error message using this {@link CommandManager}'s error message sending handler.
+     * Sets the message handler for this {@link CommandManager}.
+     *
+     * <p>If null is passed, this defaults to sending messages to the standard output stream ({@link System#out}).</p>
+     *
+     * @param handler the new message handler
+     */
+    public void setMessagesHandler(BiConsumer<CommandContext, String[]> handler) {
+        this.sendMessage = handler == null ? (ctx, msgs) -> {
+            for (String msg : msgs) System.out.println(msg);
+        } : handler;
+    }
+
+    /**
+     * Sends error messages using this {@link CommandManager}'s error message sending handler.
      *
      * @param context the context the message is coming from
-     * @param msg the message to send
+     * @param msg the messages to send
      */
-    public void sendError(CommandContext context, String msg) {
+    public void sendError(CommandContext context, String... msg) {
         this.sendError.accept(context, msg);
     }
 
@@ -202,9 +226,27 @@ public class CommandManager {
      * <p>If null is passed, this defaults to sending messages to the standard error stream ({@link System#err}).</p>
      *
      * @param handler the new error message handler
+     * @deprecated Will not handle multiline messages unless passed a string with manual line breaks. Use
+     *     {@link CommandManager#setErrorMessagesHandler(BiConsumer)} instead.
      */
+    @Deprecated
     public void setErrorMessageHandler(BiConsumer<CommandContext, String> handler) {
-        this.sendError = handler == null ? (ctx, msg) -> System.err.println(msg) : handler;
+        this.setErrorMessagesHandler(handler == null ? null : (ctx, msgs) -> {
+            for (String msg : msgs) handler.accept(ctx, msg);
+        });
+    }
+
+    /**
+     * Sets the error message handler for this {@link CommandManager}.
+     *
+     * <p>If null is passed, this defaults to sending messages to the standard output stream ({@link System#out}).</p>
+     *
+     * @param handler the new error message handler
+     */
+    public void setErrorMessagesHandler(BiConsumer<CommandContext, String[]> handler) {
+        this.sendMessage = handler == null ? (ctx, msgs) -> {
+            for (String msg : msgs) System.err.println(msg);
+        } : handler;
     }
 
     /**
@@ -275,6 +317,9 @@ public class CommandManager {
             new ParentExecutor().addCommands(commands).execute(ctx, args, ctx.isDry());
         } catch (CommandException e) {
             if (!tab) ctx.sendError(e.getMessage());
+            if (tab)
+                System.err.println("The following error occurred during tab completion. It could be safe to ignore.");
+            e.printStackTrace();
         } catch (SyntaxException e) {
             if (!tab) {
                 ctx.sendError(e.getMessage());
@@ -288,7 +333,7 @@ public class CommandManager {
             return new ArrayList<>();
         }
 
-        if(tab) return args.complete();
+        if (tab) return args.complete();
         return new ArrayList<>();
     }
 
