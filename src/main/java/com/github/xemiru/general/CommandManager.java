@@ -226,6 +226,8 @@ public class CommandManager {
      * <p>If null is passed, this defaults to sending messages to the standard error stream ({@link System#err}).</p>
      *
      * @param handler the new error message handler
+     * @deprecated Will not handle multiline messages unless passed a string with manual line breaks. Use
+     *     {@link CommandManager#setErrorMessagesHandler(BiConsumer)} instead.
      */
     @Deprecated
     public void setErrorMessageHandler(BiConsumer<CommandContext, String> handler) {
