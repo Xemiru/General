@@ -113,7 +113,7 @@ public class CommandContext implements CustomAssignable {
      *
      * @param msg the message to respond to the user with
      */
-    public void sendMessage(String msg) {
+    public void sendMessage(String... msg) {
         this.manager.sendMessage(this, msg);
     }
 
@@ -122,7 +122,7 @@ public class CommandContext implements CustomAssignable {
      *
      * @param msg the error message to send to the user
      */
-    public void sendError(String msg) {
+    public void sendError(String... msg) {
         this.manager.sendError(this, msg);
     }
 
