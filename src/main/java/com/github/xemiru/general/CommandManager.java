@@ -244,7 +244,7 @@ public class CommandManager {
      * @param handler the new error message handler
      */
     public void setErrorMessagesHandler(BiConsumer<CommandContext, String[]> handler) {
-        this.sendMessage = handler == null ? (ctx, msgs) -> {
+        this.sendError = handler == null ? (ctx, msgs) -> {
             for (String msg : msgs) System.err.println(msg);
         } : handler;
     }
@@ -317,18 +317,12 @@ public class CommandManager {
             new ParentExecutor().addCommands(commands).execute(ctx, args, ctx.isDry());
         } catch (CommandException e) {
             if (!tab) ctx.sendError(e.getMessage());
-            if (tab)
-                System.err.println("The following error occurred during tab completion. It could be safe to ignore.");
+            if (tab) System.err.println("The following error occurred during tab completion. It could be safe to ignore.");
             e.printStackTrace();
         } catch (SyntaxException e) {
-            if (!tab) {
-                ctx.sendError(e.getMessage());
-                ctx.sendError("Syntax: " + e.getSyntax());
-            }
+            if (!tab) ctx.sendError(e.getMessage(), "Syntax: " + e.getSyntax());
         } catch (Throwable e) {
-            ctx.sendError("The command has crashed: " + e.getMessage());
-            ctx.sendError("Detailed information has been logged.");
-
+            ctx.sendError("The command has crashed: " + e.getMessage(), "Detailed information has been logged.");
             e.printStackTrace();
             return new ArrayList<>();
         }
