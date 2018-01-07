@@ -275,6 +275,8 @@ public class CommandManager {
             new ParentExecutor().addCommands(commands).execute(ctx, args, ctx.isDry());
         } catch (CommandException e) {
             if (!tab) ctx.sendError(e.getMessage());
+            if (tab) System.err.println("The following error occurred during tab completion. It could be safe to ignore.");
+            e.printStackTrace();
         } catch (SyntaxException e) {
             if (!tab) {
                 ctx.sendError(e.getMessage());
