@@ -17,7 +17,7 @@ ext {
 
     // http://semver.org/spec/v2.0.0.html
     versionMajor = 1
-    versionMinor = 0
+    versionMinor = 1
     versionPatch = 0
     versionString = "$versionMajor . $versionMinor . $versionPatch".replaceAll(' ', '')
     finalVersionString = versionString + (gitBranch.equals('develop') ? '-SNAPSHOT' : gitBranch.equals('master') ? '' : "-$gitBranch-$gitBuild")
